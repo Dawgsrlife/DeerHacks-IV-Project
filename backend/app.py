@@ -1,9 +1,10 @@
-# google vision api key = AIzaSyAaWpYVSFD9V3nRAZon3UP9ZUfSmPi097g
-
+import os
 from flask import Flask, request, jsonify
 from PIL import Image
 from typing import Union
 from typing import Sequence
+
+from flask.cli import load_dotenv
 from google.cloud import vision
 
 # for vision ai
@@ -109,6 +110,7 @@ def categorize(context: str) -> list[str]:
     #     ],
     #     stream=False
     # )
+    pass
 
 def assign_tags_to_image(input_tags: list[str], image):
     pass
@@ -120,8 +122,19 @@ def assign_tags_to_image(input_tags: list[str], image):
 '''
 Given a context string describing image(s) to be found, have DeepSeek compile a list of existing tags that match the context
 '''
-def get_tags(context: str) -> list[str]:
-    interpreter = OpenAI(api_key=)
+@app.route('/get_tags', methods=['GET'])
+def get_tags():
+    interpreter = OpenAI(api_key=os.getenv("DEEPSEEK_KEY"), base_url="https://api.deepseek.com")
+
+    response = interpreter.chat.completions.create(
+        model="deepseek-chat",
+        messsages=[
+            {"role": "system", "content": "You are friendly"},
+            {"role": "user", "content": "Hello!"}
+        ]
+    )
+
+    print(response[0].message.content)
 
 
 '''
@@ -133,6 +146,7 @@ def home():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000) # you can test functions by entering into your browser
+    load_dotenv()
+    app.run(debug=True) # you can test functions by entering into your browser
                                    # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
     # Open http://127.0.0.1:5000 to check if the backend is running!
