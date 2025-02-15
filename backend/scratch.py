@@ -44,7 +44,7 @@ client = vision.ImageAnnotatorClient()
 # img_path = r"C:\Users\billd\Pictures\f60a8e352e30a32b6ec386360e87d078-1024x576.jpg"
 # img_path = r"C:\Users\billd\Pictures\1144582.png"
 # img_path = r"C:\Users\billd\Pictures\bill pictures\Snapchat-2122904078.jpg"
-
+img_path = ''
 with io.open(img_path, 'rb') as image_file:
     content = image_file.read()
 img = vision.Image(content=content)
