@@ -62,13 +62,18 @@ export const Todos = () => {
     }
 
     return (
-        <section>
+        <section
+        className = "w-10/12 sm:w-10/11 md:w-10/12 lg:w-1/2 max-w-2xl flex flex-col items-center"
+        >
             <AddTodo
                 task={task}
                 handleChange={handleChange}
                 handleSubmitTodo={handleSubmitTodo}
             />
-
+            <div
+            className="h-10"
+            >
+            </div>
             {todos.map((todo) => (
                 <Row
                     key={todo.id}
@@ -77,7 +82,13 @@ export const Todos = () => {
                     handleCheckTodo={handleCheckTodo}
                 />
             ))}
-            {!hasTodos && <p>No todos</p>}            
+            {!hasTodos && (
+                <p
+                className = "mb-5 text-xl text-red-500 uppercase"
+                >
+                    No tasks to show!
+                </p>
+            )}            
             {hasTodos && (
                 <p>{`${remainingTodos} of ${todoLength} remaining`}</p>
             )}

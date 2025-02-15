@@ -31,7 +31,11 @@ export default function HomePage() {
                 <SearchResults results={results} />
                 <Timeline events={timelineEvents} />
             </div>
+            <div
+            className="h-screen flex justify-center items-center bg-gray-100"
+            >
             <Todos />
+            </div>
         </div>
     );
 }

@@ -12,13 +12,13 @@ export const AddTodo = ({
     handleSubmitTodo,
     handleChange,
 }: AddTodoProps) => (
-    <form onSubmit={handleSubmitTodo} className="flex items-center bg-gray-800 p-4 rounded-lg">
+    <form className="flex justify-between w-full" onSubmit={handleSubmitTodo} className="flex items-center bg-gray-800 p-4 rounded-lg">
         <input
             type="text"
             placeholder="Add a new task..."
             value={task}
+            className="flex-1 rounded shadow p-2 text-grey-dark mr-2"
             onChange={handleChange}
-            className="bg-transparent text-white w-full"
         />
         <button type="submit" aria-label="Add todo" className="ml-4">
             {/* <PlusIcon className="w-6 h-6" /> */}
