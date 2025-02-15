@@ -1,24 +1,30 @@
-import React from "react";
+"use client";
+import { motion } from "framer-motion";
 
-type SearchResult = {
-    id: string;
-    title: string;
-    summary: string;
+const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
 };
 
-export default function SearchResults({ results }: { results: SearchResult[] }) {
+const SearchResults = ({ results }: { results: { id: string; title: string; summary: string }[] }) => {
     return (
-        <div className="p-4">
-            {results.length === 0 ? (
-                <p className="text-gray-400">No results found.</p>
-            ) : (
-                results.map((result) => (
-                    <div key={result.id} className="p-4 mb-4 bg-gray-700 rounded-lg">
-                        <h2 className="text-lg font-semibold text-white">{result.title}</h2>
-                        <p className="text-gray-300">{result.summary}</p>
-                    </div>
-                ))
-            )}
-        </div>
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.2 } } }}
+        >
+            {results.map((result) => (
+                <motion.div
+                    key={result.id}
+                    variants={itemVariants}
+                    className="bg-gray-800 p-4 rounded-lg mb-2"
+                >
+                    <h3 className="text-xl font-semibold">{result.title}</h3>
+                    <p className="text-gray-400">{result.summary}</p>
+                </motion.div>
+            ))}
+        </motion.div>
     );
-}
+};
+
+export default SearchResults;

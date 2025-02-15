@@ -10,6 +10,7 @@ from google.cloud import vision
 from google import genai
 from google.genai import types
 
+from authentication import authenticate_with_api_key
 # for vision ai
 # for deepseek // unstable for tools
 from openai import OpenAI
@@ -86,47 +87,80 @@ def upload():
         # do error
         pass
     # get image context from front end
-    req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
+    # req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
     # get tags from deepseek (issue: deepseek might not return same tags for same input)
-    returned_tags = categorize(req_context)
+    unprocessed_tags = categorize(verified_file)
+    processed_tags = process_ai_response(unprocessed_tags)
 
 
 '''
 given a context string, have DeepSeek categorize the text into several tags, both new and existing
 '''
-def categorize(context: str) -> list[str]:
-    # client = OpenAI(api_key="<KEY>", base_url="https://api.deepseek.com")
+def categorize(context: Image.Image) -> list[str]:
 
-    # tools = [
-    #     {
-    #         "type": "function",
-    #         "function": {
-    #             "name": "tokenize", # function name can be changed later
-    #             "description": "<description>", # add function description
-    #             "parameters": {
-    #                 "type": "object",
-    #                 "properties": {
-    #                     # figure out properties
-    #                 }
-    #             }
-    #         }
-    #     }
-    # ]
-    #
-    #
-    # return_tags = client.chat.completions.create(
-    #     model = "deepseek-chat",
-    #     messages=[
-    #         {"role": "system", "content": "some input"},
-    #         {"role": "user", "content": "some input"},
-    #         #read more on input types.
-    #     ],
-    #     stream=False
-    # )
-    pass
+    # change api key as needed
+    auth = authenticate_with_api_key(os.getenv("GOOGLE_VISION_KEY"))
+    if not auth:
+        print("Authentication failed")
+        return []
+    client = vision.ImageAnnotatorClient()
+
+    img = vision.Image()
+    img.source.image_uri = img.image_uri(context)
+
+    fts = [
+        vision.Feature.Type.LABEL_DETECTION,
+        vision.Feature.Type.LANDMARK_DETECTION,
+        vision.Feature.Type.OBJECT_LOCALIZATION,
+        vision.Feature.Type.LOGO_DETECTION,
+    ]
+    fts = [vision.Feature(type_=feature_type) for feature_type in fts]
+    req = vision.AnnotateImageRequest(image=img, features=fts)
+    response = client.annotate_image(request=req)
+    return response
+
+
+def process_ai_response(response) -> list[str]:
+
+    img_tags = []
+    # label processing
+    for label in response.label_annotations:
+        guarantee = label.score
+        tag = label.description
+
+        # add condition for score
+        if tag not in tags:
+            img_tags.append(tag)
+
+    for landmark in response.landmark_annotations:
+        guarantee = landmark.score
+        tag = landmark.description
+        if tag not in images_to_tags:
+            img_tags.append(tag)
+
+    for obj in response.localized_object_annotations:
+        guarantee = obj.score
+        tag = obj.description
+        if tag not in tags_to_image:
+            img_tags.append(tag)
+
+    for logo in response.logo_annotations:
+        guarantee = logo.score
+        tag = logo.description
+        if tag not in images_to_tags:
+            img_tags.append(tag)
+
+    return img_tags
+
 
 def assign_tags_to_image(input_tags: list[str], image):
-    pass
+
+    # Assign tags to images
+    images_to_tags.update(image, input_tags)
+
+    # Assign image to tags
+    for tag in input_tags:
+        tags_to_image.setdefault(tag, []).append(image)
 
 def update_system_instructions():
     global sys_instr

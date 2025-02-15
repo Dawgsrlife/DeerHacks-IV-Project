@@ -1,12 +1,30 @@
-import React from "react";
+"use client";
+import { motion } from "framer-motion";
 
-export default function Navbar() {
+const Navbar = () => {
     return (
-        <nav className="flex justify-between items-center p-4 bg-gray-900 text-white shadow-md">
-            <h1 className="text-xl font-bold">AI Life Search</h1>
-            <div className="space-x-4">
-                <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg">Login</button>
+        <motion.nav
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="bg-gray-900 text-white py-4 shadow-md"
+        >
+            <div className="container mx-auto flex justify-between items-center px-4">
+                <h1 className="text-2xl font-bold">MyDocs</h1>
+                <ul className="flex space-x-6">
+                    {["Docs", "Components", "Blog"].map((item, index) => (
+                        <motion.li
+                            key={index}
+                            whileHover={{ scale: 1.1 }}
+                            transition={{ type: "spring", stiffness: 200 }}
+                        >
+                            <a href="#" className="hover:text-gray-400">{item}</a>
+                        </motion.li>
+                    ))}
+                </ul>
             </div>
-        </nav>
+        </motion.nav>
     );
-}
+};
+
+export default Navbar;
