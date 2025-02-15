@@ -1,5 +1,3 @@
-# google vision api key = AIzaSyAaWpYVSFD9V3nRAZon3UP9ZUfSmPi097g
-
 from flask import Flask, request, jsonify
 from PIL import Image
 from typing import Union
@@ -23,7 +21,7 @@ from google.cloud import vision
 # from flask_limiter import Limiter
 # from flask_limiter.util import get_remote_address
 # import file
-# import io
+import io
 # import os
 
 app = Flask(__name__)
@@ -72,43 +70,33 @@ def upload():
         # do error
         pass
     # get image context from front end
-    req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
+    # req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
     # get tags from deepseek (issue: deepseek might not return same tags for same input)
-    returned_tags = categorize(req_context)
+    returned_tags = categorize(verified_file)
 
 
 '''
 given a context string, have DeepSeek categorize the text into several tags, both new and existing
 '''
-def categorize(context: str) -> list[str]:
-    # client = OpenAI(api_key="<KEY>", base_url="https://api.deepseek.com")
+def categorize(context: Image.Image) -> list[str]:
 
-    # tools = [
-    #     {
-    #         "type": "function",
-    #         "function": {
-    #             "name": "tokenize", # function name can be changed later
-    #             "description": "<description>", # add function description
-    #             "parameters": {
-    #                 "type": "object",
-    #                 "properties": {
-    #                     # figure out properties
-    #                 }
-    #             }
-    #         }
-    #     }
-    # ]
-    #
-    #
-    # return_tags = client.chat.completions.create(
-    #     model = "deepseek-chat",
-    #     messages=[
-    #         {"role": "system", "content": "some input"},
-    #         {"role": "user", "content": "some input"},
-    #         #read more on input types.
-    #     ],
-    #     stream=False
-    # )
+    client = vision.ImageAnnotatorClient()
+
+    # with io.open(context, 'rb') as image_file:
+    #     content = image_file.read()
+    img = vision.Image()
+    img.source.image_uri = img.image_uri(context)
+    fts = Sequence()
+    fts = [
+        vision.Feature.Type.LABEL_DETECTION,
+        vision.Feature.Type.LANDMARK_DETECTION,
+        vision.Feature.Type.OBJECT_LOCALIZATION,
+        vision.Feature.Type.LOGO_DETECTION,
+    ]
+    features = [vision.Feature(type_=feature_type) for feature_type in fts]
+    req = vision.AnnotateImageRequest(image=img, features=fts)
+    response = client.annotate_image(request=req)
+
 
 def assign_tags_to_image(input_tags: list[str], image):
     pass
