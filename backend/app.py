@@ -43,6 +43,8 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+#
 def load_image(file) -> Union[Image.Image, None]:
     try:
         if not allowed_file(file.filename) or not file.mimetype.startswith('image/'):
@@ -71,15 +73,16 @@ def upload():
         # do error
         pass
     # get image context from front end
-    req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
+    # req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
     # get tags from deepseek (issue: deepseek might not return same tags for same input)
-    returned_tags = categorize(req_context)
+    unprocessed_tags = categorize(verified_file)
+    processed_tags = process_ai_response(unprocessed_tags)
 
 
 '''
 given a context string, have DeepSeek categorize the text into several tags, both new and existing
 '''
-def categorize(context: str) -> list[str]:
+def categorize(context: Image.Image) -> list[str]:
 
     # change api key as needed
     auth = authenticate_with_api_key("AIzaSyC1Yhykj27r5_GxFUqTBdnVPWVUz8nQ5vU")
@@ -100,8 +103,40 @@ def categorize(context: str) -> list[str]:
     fts = [vision.Feature(type_=feature_type) for feature_type in fts]
     req = vision.AnnotateImageRequest(image=img, features=fts)
     response = client.annotate_image(request=req)
+    return response
 
-    return []
+
+def process_ai_response(response) -> list[str]:
+
+    img_tags = []
+    # label processing
+    for label in response.label_annotations:
+        guarantee = label.score
+        tag = label.description
+
+        # add condition for score
+        if tag not in tags:
+            img_tags.append(tag)
+
+    for landmark in response.landmark_annotations:
+        guarantee = landmark.score
+        tag = landmark.description
+        if tag not in images_to_tags:
+            img_tags.append(tag)
+
+    for obj in response.localized_object_annotations:
+        guarantee = obj.score
+        tag = obj.description
+        if tag not in tags_to_image:
+            img_tags.append(tag)
+
+    for logo in response.logo_annotations:
+        guarantee = logo.score
+        tag = logo.description
+        if tag not in images_to_tags:
+            img_tags.append(tag)
+
+    return img_tags
 
 
 def assign_tags_to_image(input_tags: list[str], image):
