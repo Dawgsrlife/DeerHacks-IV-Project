@@ -1,0 +1,50 @@
+# Ignore IntelliJ-specific files
+.idea/
+*.iml
+
+# Ignore compiled Java files
+*.class
+*.jar
+*.war
+*.ear
+
+# Ignore logs and temp files
+logs/
+*.log
+tmp/
+
+# Ignore build directories
+/build/
+/out/
+/target/
+
+# Ignore dependency caches
+.mvn/
+.gradle/
+node_modules/
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environment
+venv/
+env/
+
+# Ignore compiled Python files
+*.pyo
+*.pyc
+
+# Ignore dependencies
+node_modules/
+npm-debug.log
+yarn.lock
+dist/
+build/
+
+# Ignore React environment variables
+.env
+
+git add .gitignore
+git commit -m "Updated .gitignore file"
+git push origin main
