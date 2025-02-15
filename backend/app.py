@@ -8,7 +8,7 @@ from google.cloud import vision
 
 # for vision ai
 # for deepseek // unstable for tools
-# from openai import OpenAI
+from openai import OpenAI
 
 # azure ai (cannot import) // deprecated
 # from azure.cognitiveservices.vision.computervision import ComputerVisionClient
@@ -121,7 +121,7 @@ def assign_tags_to_image(input_tags: list[str], image):
 Given a context string describing image(s) to be found, have DeepSeek compile a list of existing tags that match the context
 '''
 def get_tags(context: str) -> list[str]:
-    pass
+    interpreter = OpenAI(api_key=)
 
 
 '''
