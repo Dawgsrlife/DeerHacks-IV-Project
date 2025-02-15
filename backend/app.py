@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from PIL import Image
 
 app = Flask(__name__)
 
@@ -6,21 +7,14 @@ app = Flask(__name__)
 tags = []
 
 # dictionaries
+# each tag has a list of images that has that tag
 tags_to_image = {}
 
+# each image has a list of tags that has an image associated with it
 images_to_tags = {}
 
-'''
-given a context string, have DeepSeek categorize the text into several tags, both new and existing
-'''
-def categorize(context: str) -> list[str]:
-    pass
 
-'''
-Given a context string describing image(s) to be found, have DeepSeek compile a list of existing tags that match the context
-'''
-def get_tags(context: str) -> list[str]:
-    pass
+
 
 '''
 Given file and context string, save it into the dictionary with the associated tags.
@@ -30,7 +24,29 @@ A file can be categorized by multiple tags
 def upload():
     # inputs are not given as function arguments, use request method
     # categorize(context) ...
+    req_file = request.files.get("image") 
+    # input 
+    # takes in an image (most likely not an image)
+    req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
+    returned_tags = categorize(req_context)
+
+'''
+given a context string, have DeepSeek categorize the text into several tags, both new and existing
+'''
+def categorize(context: str) -> list[str]:
     pass
+
+def assign_tags_to_image(tags: list[str], image: file):
+    pass
+#==============================================================================
+
+
+'''
+Given a context string describing image(s) to be found, have DeepSeek compile a list of existing tags that match the context
+'''
+def get_tags(context: str) -> list[str]:
+    pass
+
 
 '''
 Sample function, safe to ignore
