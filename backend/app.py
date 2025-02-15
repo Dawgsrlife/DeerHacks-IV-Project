@@ -4,7 +4,7 @@ from PIL import Image
 from typing import Union
 from typing import Sequence
 from google.cloud import vision
-
+from authentication import authenticate_with_api_key
 # for vision ai
 # for deepseek // unstable for tools
 # from openai import OpenAI
@@ -80,34 +80,27 @@ def upload():
 given a context string, have DeepSeek categorize the text into several tags, both new and existing
 '''
 def categorize(context: str) -> list[str]:
-    # client = OpenAI(api_key="<KEY>", base_url="https://api.deepseek.com")
 
-    # tools = [
-    #     {
-    #         "type": "function",
-    #         "function": {
-    #             "name": "tokenize", # function name can be changed later
-    #             "description": "<description>", # add function description
-    #             "parameters": {
-    #                 "type": "object",
-    #                 "properties": {
-    #                     # figure out properties
-    #                 }
-    #             }
-    #         }
-    #     }
-    # ]
-    #
-    #
-    # return_tags = client.chat.completions.create(
-    #     model = "deepseek-chat",
-    #     messages=[
-    #         {"role": "system", "content": "some input"},
-    #         {"role": "user", "content": "some input"},
-    #         #read more on input types.
-    #     ],
-    #     stream=False
-    # )
+    # change api key as needed
+    authenticate_with_api_key("AIzaSyC1Yhykj27r5_GxFUqTBdnVPWVUz8nQ5vU")
+
+    client = vision.ImageAnnotatorClient()
+
+    img = vision.Image()
+    img.source.image_uri = img.image_uri(context)
+
+    fts = [
+        vision.Feature.Type.LABEL_DETECTION,
+        vision.Feature.Type.LANDMARK_DETECTION,
+        vision.Feature.Type.OBJECT_LOCALIZATION,
+        vision.Feature.Type.LOGO_DETECTION,
+    ]
+    fts = [vision.Feature(type_=feature_type) for feature_type in fts]
+    req = vision.AnnotateImageRequest(image=img, features=fts)
+    response = client.annotate_image(request=req)
+
+    return []
+
 
 def assign_tags_to_image(input_tags: list[str], image):
     pass
