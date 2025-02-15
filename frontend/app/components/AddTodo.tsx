@@ -1,5 +1,5 @@
 import React, { ChangeEvent, FormEvent } from 'react';
-// import { ReactComponent as PlusIcon } from "../assets/svg/plus.svg"
+// import { ReactComponent as PlusIcon } from "../assets/plus.svg";
 
 export type AddTodoProps = {
     task: string;
@@ -12,7 +12,7 @@ export const AddTodo = ({
     handleSubmitTodo,
     handleChange,
 }: AddTodoProps) => (
-    <form className="flex justify-between w-full" onSubmit={handleSubmitTodo} className="flex items-center bg-gray-800 p-4 rounded-lg">
+    <form className="flex justify-between w-full" onSubmit={handleSubmitTodo}>
         <input
             type="text"
             placeholder="Add a new task..."
