@@ -1,3 +1,5 @@
+import os
+from flask.cli import load_dotenv
 import io
 from typing import Sequence
 from google.cloud import vision
@@ -32,8 +34,9 @@ def authenticate_with_api_key(api_key_string: str) -> None:
     print(f"Sentiment: {sentiment.score}, {sentiment.magnitude}")
     print("Successfully authenticated using the API key")
 
+load_dotenv()
 
-authenticate_with_api_key("AIzaSyC1Yhykj27r5_GxFUqTBdnVPWVUz8nQ5vU")
+authenticate_with_api_key(os.getenv("GOOGLE_API_KEY"))
 
 client = vision.ImageAnnotatorClient()
 
