@@ -1,4 +1,6 @@
 import os
+import types
+
 from flask import Flask, request, jsonify
 from PIL import Image
 from typing import Union
@@ -6,6 +8,8 @@ from typing import Sequence
 
 from flask.cli import load_dotenv
 from google.cloud import vision
+from google import genai
+from google.genai import types
 
 # for vision ai
 # for deepseek // unstable for tools
@@ -29,8 +33,18 @@ from openai import OpenAI
 
 app = Flask(__name__)
 
+context = "You are the brain of a system with a tagged photo gallery and a to-do list. Below are the existing tags:"
+instruction = ("The user will provide you with a description of what they are trying to find, which can range from a specific photo or a reminder on the to-do list." +
+             "Your job is to figure out which tags are related to their description and provide it to them. The only thing you should respond with are the tags you deemed to be fitting, each on a new line, or ERROR if the user input does not make sense.\n" +
+             "For example, suppose the system contains the following tags:\nschool notes\nscenery\nfood\nmath\n\nSuppose the user asks \"Find the math problem I was working on last week.\" Below is what your response should be:\n"
+             "school notes\nmath\n")
+
 # list of tags
 tags = []
+
+sys_instr = (context + "\nSTART OF TAGS\n" +
+            "\n".join(tags) + "\nEND OF TAGS\n" +
+             instruction)
 
 # dictionaries
 # each tag has a list of images that has that tag
@@ -115,6 +129,21 @@ def categorize(context: str) -> list[str]:
 def assign_tags_to_image(input_tags: list[str], image):
     pass
 
+def update_system_instructions():
+    global sys_instr
+    sys_instr = (context + "\nSTART OF TAGS\n" +
+            "\n".join(tags) + "\nEND OF TAGS\n" +
+             instruction)
+
+'''
+Testing function
+'''
+def foo():
+    tags.append('games')
+    tags.append('homework')
+    tags_to_image['games'] = ['league of legends', 'overwatch']
+    images_to_tags['homework'] = ['csc236']
+
 
 #==============================================================================
 
@@ -124,18 +153,18 @@ Given a context string describing image(s) to be found, have DeepSeek compile a 
 '''
 @app.route('/get_tags', methods=['GET'])
 def get_tags():
-    interpreter = OpenAI(api_key=os.getenv("DEEPSEEK_KEY"), base_url="https://api.deepseek.com")
+    description = request.args.get('desc')
+    interpreter = genai.Client(api_key=os.getenv("GEMINI_KEY"))
 
-    response = interpreter.chat.completions.create(
-        model="deepseek-chat",
-        messsages=[
-            {"role": "system", "content": "You are friendly"},
-            {"role": "user", "content": "Hello!"}
-        ]
+    response = interpreter.models.generate_content(
+        model="gemini-2.0-flash",
+        config=types.GenerateContentConfig(
+            system_instruction=sys_instr
+        ),
+        contents=description
     )
 
-    print(response[0].message.content)
-
+    return jsonify({"result": response.text})
 
 '''
 Sample function, safe to ignore
