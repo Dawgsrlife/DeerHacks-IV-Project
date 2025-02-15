@@ -3,8 +3,7 @@ import types
 
 from flask import Flask, request, jsonify
 from PIL import Image
-from typing import Union
-from typing import Sequence
+from typing import Union,Sequence
 
 from flask.cli import load_dotenv
 from google.cloud import vision
@@ -151,9 +150,13 @@ def foo():
 '''
 Given a context string describing image(s) to be found, have DeepSeek compile a list of existing tags that match the context
 '''
-@app.route('/get_tags', methods=['GET'])
-def get_tags():
+@app.route('/search', methods=['GET'])
+def search():
     description = request.args.get('desc')
+    suitable_tags = get_tags(description)
+
+
+def get_tags(description: str) -> list[str]:
     interpreter = genai.Client(api_key=os.getenv("GEMINI_KEY"))
 
     response = interpreter.models.generate_content(
@@ -163,8 +166,9 @@ def get_tags():
         ),
         contents=description
     )
-
-    return jsonify({"result": response.text})
+    if response == "ERROR":
+        return []
+    return response.split("\n")
 
 '''
 Sample function, safe to ignore
