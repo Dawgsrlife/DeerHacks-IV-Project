@@ -140,7 +140,13 @@ def process_ai_response(response) -> list[str]:
 
 
 def assign_tags_to_image(input_tags: list[str], image):
-    pass
+    
+    # Assign tags to images
+    images_to_tags.update(image, input_tags)
+
+    # Assign image to tags
+    for tag in input_tags:
+        tags_to_image.setdefault(tag, []).append(image)
 
 
 #==============================================================================
