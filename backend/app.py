@@ -208,6 +208,10 @@ def search():
     suitable_tags = get_tags(description)
     if not suitable_tags:
         return jsonify({'error': 'No tags found'}), 404
+    else:
+        paths = get_related_imgpths(suitable_tags)
+        imgs = get_imgs_from_path(paths)
+    # somehow return imgs
 
 
 def get_tags(description: str) -> list[str]:
@@ -223,6 +227,21 @@ def get_tags(description: str) -> list[str]:
     if response == "ERROR":
         return []
     return response.split("\n")
+
+
+def get_related_imgpths(ai_tags: list[str]) -> list[str]:
+    paths = []
+    for tag in ai_tags:
+        if tag in tags:
+            paths.extend([imp_pth for imp_pth in tags_to_imgpth[tag] if imp_pth not in paths])
+    return paths
+
+
+def get_imgs_from_path(paths: list[str]) -> list:
+    images = []
+    for path in paths:
+        images.append(imgpth_to_img[path])
+    return images
 
 '''
 Sample function, safe to ignore
