@@ -82,8 +82,10 @@ given a context string, have DeepSeek categorize the text into several tags, bot
 def categorize(context: str) -> list[str]:
 
     # change api key as needed
-    authenticate_with_api_key("AIzaSyC1Yhykj27r5_GxFUqTBdnVPWVUz8nQ5vU")
-
+    auth = authenticate_with_api_key("AIzaSyC1Yhykj27r5_GxFUqTBdnVPWVUz8nQ5vU")
+    if not auth:
+        print("Authentication failed")
+        return []
     client = vision.ImageAnnotatorClient()
 
     img = vision.Image()
