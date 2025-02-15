@@ -1,3 +1,5 @@
+# google vision api key = AIzaSyAaWpYVSFD9V3nRAZon3UP9ZUfSmPi097g
+
 from flask import Flask, request, jsonify
 from PIL import Image
 from typing import Union
