@@ -52,10 +52,13 @@ sys_instr = (prmt_context + "\nSTART OF TAGS\n" +
 
 # dictionaries
 # each tag has a list of images that has that tag
-tags_to_image = {}
+tags_to_imgpth = {}
 
 # each image has a list of tags that has an image associated with it
-images_to_tags = {}
+imgpth_to_tags = {}
+
+# each path has one image
+imgpth_to_img = {}
 
 # idk what this do
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -84,7 +87,9 @@ def upload():
     # inputs are not given as function arguments, use request method
     # categorize(context) ...
     # get file from front end
+    # image in bytes
     req_file = request.files.get("image")
+    # other 3 parameters
     path = request.args.get("path")
     name = request.args.get("name")
     format = request.args.get("format")
@@ -100,8 +105,9 @@ def upload():
     unprocessed_tags = categorize(req_file)
     print(unprocessed_tags)
     processed_tags = process_ai_response(unprocessed_tags)
-    assign_tags_to_image(processed_tags, img_str)
+    assign_tags_to_imgpth(processed_tags, img_str)
     print(tags)
+    imgpth_to_img[img_str] = req_file
     return jsonify({"tags": processed_tags})
 
 '''
@@ -165,14 +171,14 @@ def process_ai_response(response) -> list[str]:
     return img_tags
 
 
-def assign_tags_to_image(input_tags: list[str], image):
+def assign_tags_to_imgpth(input_tags: list[str], image):
 
     # Assign tags to images
-    images_to_tags[image] = input_tags
+    imgpth_to_tags[image] = input_tags
 
     # Assign image to tags
     for tag in input_tags:
-        tags_to_image.setdefault(tag, []).append(image)
+        tags_to_imgpth.setdefault(tag, []).append(image)
 
 def update_system_instructions():
     global sys_instr
