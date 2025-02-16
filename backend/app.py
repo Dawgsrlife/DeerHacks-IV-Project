@@ -6,7 +6,7 @@ import json
 from PIL import Image
 from typing import Union, Sequence, BinaryIO, Any
 # for flask
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask.cli import load_dotenv
 # for vision ai and gemini ai
 from google.cloud import vision
@@ -20,7 +20,7 @@ from authentication import authenticate_with_api_key
 # from flask_limiter.util import get_remote_address
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend/build", static_url_path="/")
 
 prmt_context = "You are the brain of a system with a tagged photo gallery and a to-do list. Below are the existing tags:"
 instruction = ("The user will provide you with a description of what they are trying to find, which can range from a specific photo or a reminder on the to-do list." +
@@ -46,6 +46,11 @@ imgpth_to_tags = {}
 imgpth_to_img = {}
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+
+@app.route('/')
+def serve_react():
+    return send_from_directory(app.static_folder, 'index.html')
 
 
 def allowed_file(filename):
@@ -306,56 +311,94 @@ load_dotenv()
 
 # =====================================================================
 
+# Initialize Flask App
 app = Flask(__name__)
 
-MEMORY_FILE = "memories.json"
+# Define paths for memories file and images directory
+MEMORIES_FILE = os.path.join(os.getcwd(), "backend", "memories.json")
+IMAGES_DIR = os.path.join(os.getcwd(), "backend", "images")
 
 
 # Load memories from JSON file
 def load_memories():
+    """Loads memories from the JSON file and maps image paths correctly."""
+    if not os.path.exists(MEMORIES_FILE):
+        return {"memories": []}
+
     try:
-        with open(MEMORY_FILE, "r") as file:
-            return json.load(file)
+        with open(MEMORIES_FILE, "r") as file:
+            data = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        return []
+        return {"memories": []}
+
+    # Ensure image paths are correct
+    for memory in data.get("memories", []):
+        memory["images"] = [
+            f"/images/{img}" for img in memory.get("images", []) if os.path.exists(os.path.join(IMAGES_DIR, img))
+        ]
+
+    return data
 
 
 # Save memories to JSON file
 def save_memories(memories):
-    with open(MEMORY_FILE, "w") as file:
-        json.dump(memories, file, indent=4)
+    """Save updated memory data to file."""
+    with open(MEMORIES_FILE, "w") as file:
+        json.dump({"memories": memories}, file, indent=4)
 
 
-# Search memories based on a query
+# API: Fetch Timeline Data
+@app.route('/timeline', methods=['GET'])
+def get_timeline():
+    """Fetch all memories and return them in chronological order."""
+    memories = load_memories().get("memories", [])
+
+    # Sort memories by date (most recent first)
+    sorted_memories = sorted(memories, key=lambda m: m["date_added"], reverse=True)
+
+    return jsonify({"memories": sorted_memories})
+
+
+# API: Search for Memories Based on Query
 @app.route('/search', methods=['GET'])
 def search():
+    """Search memories based on description or tags."""
     description = request.args.get('desc', '').lower()
-    memories = load_memories()
+    memories = load_memories().get("memories", [])
 
-    # Find memories matching the description or tags
-    results = [m for m in memories if
-               description in m['description'].lower() or any(description in tag for tag in m['tags'])]
+    # Find matching memories
+    results = [
+        memory for memory in memories
+        if description in memory["description"].lower() or any(description in tag for tag in memory["tags"])
+    ]
 
     if not results:
-        return jsonify({'error': 'No memories found'}), 404
+        return jsonify({"error": "No memories found"}), 404
 
-    return jsonify(
-        {'images': [m['image_path'] for m in results], 'tags': list(set(tag for m in results for tag in m['tags']))})
+    return jsonify({
+        "images": [memory["images"] for memory in results if memory["images"]],
+        "tags": list(set(tag for memory in results for tag in memory["tags"]))
+    })
 
 
-# Add a new memory
+# API: Add a New Memory
 @app.route('/add_memory', methods=['POST'])
 def add_memory():
+    """Add a new memory with an image path, description, tags, and date."""
     data = request.json
-    if not data or "image_path" not in data or "description" not in data or "tags" not in data or "date_added" not in data:
-        return jsonify({"error": "Missing fields"}), 400
+    required_fields = {"image_path", "description", "tags", "date_added"}
 
-    memories = load_memories()
+    if not data or not required_fields.issubset(data):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    memories = load_memories().get("memories", [])
     memories.append(data)
     save_memories(memories)
 
     return jsonify({"message": "Memory added successfully!"})
 
+
+# Run Flask app
 if __name__ == '__main__':
     app.run(debug=True) # you can test functions by entering into your browser
                                    # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'

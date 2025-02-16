@@ -1,23 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import Dropdown from "components/dropdown";
 import { FiAlignJustify, FiSearch } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { BsBell, BsCpu, BsFileEarmarkText } from "react-icons/bs";
 import { RiMoonFill, RiSunFill } from "react-icons/ri";
-import avatar from "assets/img/avatars/avatar.png"; // Updated AI profile icon
+import avatar from "assets/img/avatars/avatar.png";
 
 const Navbar = (props) => {
   const { onOpenSidenav, brandText } = props;
   const [darkmode, setDarkmode] = React.useState(false);
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Handle search input
-  const handleSearch = (event) => {
-    if (event.key === "Enter") {
-      const query = event.target.value.trim();
-      if (query) {
-        navigate(`/admin/memory/${encodeURIComponent(query)}`);
+  const handleSearch = async (event) => {
+    if (event.key === "Enter" && searchQuery.trim()) {
+      try {
+        const response = await axios.get(`http://127.0.0.1:5000/search?desc=${searchQuery}`);
+        if (response.data.images.length > 0) {
+          navigate(`/admin/memory/${encodeURIComponent(searchQuery)}`, { state: { images: response.data.images, tags: response.data.tags || [] } });
+        } else {
+          alert("No memories found.");
+        }
+      } catch (error) {
+        console.error("Error searching memories:", error);
       }
     }
   };

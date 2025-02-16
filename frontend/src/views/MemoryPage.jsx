@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MdArrowBack } from "react-icons/md";
 import Card from "components/card";
+import axios from "axios";
 
 const MemoryPage = () => {
     const { query } = useParams(); // Get the search query from URL
@@ -12,11 +13,11 @@ const MemoryPage = () => {
     useEffect(() => {
         const fetchMemory = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:5000/search?desc=${query}`);
-                if (!response.ok) throw new Error("Memory not found");
-
-                const data = await response.json();
-                setMemoryData({ images: data.images || [], tags: data.tags || [] });
+                const response = await axios.get(`http://127.0.0.1:5000/search?desc=${query}`);
+                if (!response.data || response.data.images.length === 0) {
+                    throw new Error("Memory not found");
+                }
+                setMemoryData({ images: response.data.images || [], tags: response.data.tags || [] });
             } catch (error) {
                 console.error("Error fetching memory:", error);
                 setMemoryData({ images: [], tags: [] }); // No results found
@@ -69,8 +70,8 @@ const MemoryPage = () => {
                     <div className="flex flex-wrap gap-2 mt-2">
                         {memoryData.tags.map((tag, index) => (
                             <span key={index} className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg">
-                {tag}
-              </span>
+                                {tag}
+                            </span>
                         ))}
                     </div>
                 </div>
