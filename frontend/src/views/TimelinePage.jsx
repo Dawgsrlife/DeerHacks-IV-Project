@@ -19,7 +19,7 @@ const Timeline = () => {
                 if (!data.images) throw new Error("No memories found");
 
                 // Adjust image paths to match backend route
-                const formattedMemories = data.memories.map(memory => ({
+                const formattedMemories = data.images.map(memory => ({
                     ...memory,
                     image_path: `http://127.0.0.1:5000/${memory.image_path}`
                 }));
