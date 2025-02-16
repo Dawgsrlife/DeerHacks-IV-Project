@@ -1,20 +1,23 @@
 import os
 import types
 import io
+import atexit
 
 import requests
 
-from flask import Flask, request, jsonify
+
 from PIL import Image
 from typing import Union, Sequence, BinaryIO, Any
-
+# for flask
+from flask import Flask, request, jsonify
 from flask.cli import load_dotenv
+# for vision ai and gemini ai
 from google.cloud import vision
 from google import genai
 from google.genai import types
-
+# google authentication
 from authentication import authenticate_with_api_key
-# for vision ai
+
 # for deepseek // unstable for tools
 from openai import OpenAI
 
@@ -60,23 +63,6 @@ imgpth_to_tags = {}
 # each path has one image
 imgpth_to_img = {}
 
-# idk what this do
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def load_image(file) -> Union[Image.Image, None]:
-    try:
-        if not allowed_file(file.filename) or not file.mimetype.startswith('image/'):
-            return None
-        img = Image.open(file)
-        img.verify()
-        file.seek(0)
-        return Image.open(file)
-    except Exception:
-        return None
-
 
 '''
 Given file and context string, save it into the dictionary with the associated tags.
@@ -92,22 +78,18 @@ def upload():
     # other 3 parameters
     path = request.args.get("path")
     name = request.args.get("name")
-    format = request.args.get("format")
-    img_str = path + name + '.' + format
-    # # verify file integrity
-    # verified_file = load_image(req_file)
-    # if verified_file is None:
-    #     return jsonify({'error': 'invalid '}), 400
-    #     pass
-    # get image context from front end
-    # req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
-    # get tags from deepseek (issue: deepseek might not return same tags for same input)
+    fmt = request.args.get("format")
+    img_str = path + name + '.' + fmt
+
     unprocessed_tags = categorize(req_file)
     print(unprocessed_tags)
     processed_tags = process_ai_response(unprocessed_tags)
     assign_tags_to_imgpth(processed_tags, img_str)
     print(tags)
     imgpth_to_img[img_str] = req_file
+    print(tags_to_imgpth)
+    print(imgpth_to_tags)
+    save_imgs()
     return jsonify({"tags": processed_tags})
 
 
@@ -170,14 +152,12 @@ def categorize(context: BinaryIO) -> Any:
 
 
 def process_ai_response(response) -> list[str]:
-
     img_tags = []
     # label processing
     for label in response.label_annotations:
         guarantee = label.score
         tag = label.description.lower()
-
-        # add condition for score
+        # add condition for score ?
         if tag not in img_tags:
             img_tags.append(tag)
 
@@ -203,19 +183,43 @@ def process_ai_response(response) -> list[str]:
 
 
 def assign_tags_to_imgpth(input_tags: list[str], image):
-
     # Assign tags to images
     imgpth_to_tags[image] = input_tags
-
     # Assign image to tags
     for tag in input_tags:
+        if tag not in tags:
+            tags.append(tag)
         tags_to_imgpth.setdefault(tag, []).append(image)
+
 
 def update_system_instructions():
     global sys_instr
     sys_instr = (prmt_context + "\nSTART OF TAGS\n" +
             "\n".join(tags) + "\nEND OF TAGS\n" +
              instruction)
+
+
+def save_imgs():
+    file_path = os.getcwd() + "\\images\\image.txt"
+    os.mkdir(os.getcwd() + "\\images\\")
+    f = open(file_path, "x")
+    f.close()
+    with open(file_path, "w") as f:
+        for path in imgpth_to_tags:
+            f.write(path + "," + ",".join(imgpth_to_tags[path]))
+
+def load_imgs():
+    file_path = os.getcwd() + "\\images\\image.txt"
+    with open(file_path, "r") as f:
+        keys = f.readline().split(",")
+        print(keys)
+        print(keys[1:])
+        for tag in keys[1:]:
+            tags.append(tag)
+            tags_to_imgpth.setdefault(tag, []).append(keys[0])
+            imgpth_to_tags.setdefault(keys[0], []).append(tag)
+        update_system_instructions()
+
 
 # '''
 # Testing function
@@ -235,7 +239,8 @@ Given a context string describing image(s) to be found, compile a list of existi
 '''
 @app.route('/search', methods=['GET'])
 def search():
-    description = request.args.get('desc')
+    load_imgs()
+    description = request.args['desc']
     suitable_tags = get_tags(description)
     if not suitable_tags:
         return jsonify({'error': 'No tags found'}), 404
@@ -255,9 +260,10 @@ def get_tags(description: str) -> list[str]:
         ),
         contents=description
     )
-    if response == "ERROR":
+    print(response)
+    if response.text == "ERROR\n":
         return []
-    return response.split("\n")
+    return response.text.split("\n")
 
 
 def get_related_imgpths(ai_tags: list[str]) -> list[str]:
@@ -274,16 +280,20 @@ def get_imgs_from_path(paths: list[str]) -> list:
         images.append(imgpth_to_img[path])
     return images
 
-'''
-Sample function, safe to ignore
-'''
-@app.route('/')
-def home():
-    return jsonify({"message": "Backend is running!"})
-
 
 if __name__ == '__main__':
-    load_dotenv()
-    app.run(debug=True) # you can test functions by entering into your browser
-                                   # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
+    try:
+        load_dotenv()
+        load_imgs()
+        app.run(debug=True)  # you can test functions by entering into your browser
+        # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
+    # except KeyboardInterrupt:
+    #     print("Shutdown requested")
+    #     save_imgs()
+    # except SystemExit:
+    #     print("Shutdown requested")
+    #     save_imgs()
+    finally:
+        print("Closing app...")
+        save_imgs()
     # Open http://127.0.0.1:5000 to check if the backend is running!
