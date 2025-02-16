@@ -57,9 +57,6 @@ tags_to_imgpth = {}
 # each image has a list of tags that has an image associated with it
 imgpth_to_tags = {}
 
-# each path has one image
-imgpth_to_img = {}
-
 # idk what this do
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -107,7 +104,6 @@ def upload():
     processed_tags = process_ai_response(unprocessed_tags)
     assign_tags_to_imgpth(processed_tags, img_str)
     print(tags)
-    imgpth_to_img[img_str] = req_file
     print(tags_to_imgpth)
     print(imgpth_to_tags)
     return jsonify({"tags": processed_tags})
@@ -202,6 +198,11 @@ def load_imgs():
             tags.append(tag)
             tags_to_imgpth.setdefault(tag, []).append(keys[0])
             imgpth_to_tags.setdefault(keys[0], []).append(tag)
+    print(tags)
+    print(tags_to_imgpth)
+    print(imgpth_to_tags)
+    update_system_instructions()
+    print(sys_instr)
 
 
 # '''
@@ -222,14 +223,13 @@ Given a context string describing image(s) to be found, compile a list of existi
 '''
 @app.route('/search', methods=['GET'])
 def search():
-    description = request.args.get('desc')
+    description = request.args['desc']
     suitable_tags = get_tags(description)
     if not suitable_tags:
         return jsonify({'error': 'No tags found'}), 404
     else:
-        paths = get_related_imgpths(suitable_tags)
-        imgs = get_imgs_from_path(paths)
-    # somehow return imgs
+        imgs = get_related_imgpths(suitable_tags)
+    return jsonify({'images': imgs})
 
 
 def get_tags(description: str) -> list[str]:
@@ -242,9 +242,9 @@ def get_tags(description: str) -> list[str]:
         ),
         contents=description
     )
-    if response == "ERROR":
+    if response.text == "ERROR":
         return []
-    return response.split("\n")
+    return response.text.split("\n")
 
 
 def get_related_imgpths(ai_tags: list[str]) -> list[str]:
@@ -255,16 +255,17 @@ def get_related_imgpths(ai_tags: list[str]) -> list[str]:
     return paths
 
 
-def get_imgs_from_path(paths: list[str]) -> list:
-    images = []
-    for path in paths:
-        images.append(imgpth_to_img[path])
-    return images
+# def get_imgs_from_path(paths: list[str]) -> list:
+#     images = []
+#     for path in paths:
+#         images.append()
+#     return images
 
-
+load_imgs()
+load_dotenv()
 
 if __name__ == '__main__':
-    load_dotenv()
     app.run(debug=True) # you can test functions by entering into your browser
                                    # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
     # Open http://127.0.0.1:5000 to check if the backend is running!
+save_imgs()
