@@ -89,6 +89,8 @@ def load_image(file) -> Union[Image.Image, None]:
 Given file and context string, save it into the dictionary with the associated tags.
 A file can be categorized by multiple tags
 '''
+
+
 @app.route('/upload_with_tag', methods=['POST'])
 def upload():
     # inputs are not given as function arguments, use request method
@@ -146,6 +148,8 @@ def get_files_from_folder(folder: str) -> list[Image]:
 '''
 given a context string, categorize the text into several tags, both new and existing
 '''
+
+
 def categorize(context: BinaryIO) -> Any:
     # change api key as needed
     auth = authenticate_with_api_key(os.getenv("GOOGLE_VISION_KEY"))
@@ -266,6 +270,8 @@ memory_cache = {}  # Simple dictionary for caching
 '''
 Given a context string describing image(s) to be found, compile a list of existing tags that match the context
 '''
+
+
 @app.route('/search', methods=['GET'])
 def search():
     description = request.args.get('desc', '')
@@ -329,6 +335,7 @@ BASE_DIR = os.getcwd()
 MEMORIES_FILE = os.path.join(BASE_DIR, "memories.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "backend", "images")
 
+
 def validate_memory_file():
     '''
     Check if the memory file exists, and creates it if not.
@@ -358,10 +365,12 @@ def save_memories():
     with open(MEMORIES_FILE, "w") as f:
         json.dump(memories, f)
 
+
 @app.route('/timeline', methods=['GET'])
 def get_timeline():
     """API endpoint to fetch all memories for the timeline."""
     return jsonify(memories)
+
 
 # load_imgs()
 load_dotenv()
