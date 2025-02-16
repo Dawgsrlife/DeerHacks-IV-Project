@@ -14,6 +14,7 @@ const MemoryPage = () => {
         const fetchMemory = async () => {
             try {
                 const response = await axios.get(`http://127.0.0.1:5000/search?desc=${query}`);
+                console.log(response);
                 if (!response.data || response.data.images.length === 0) {
                     throw new Error("Memory not found");
                 }
