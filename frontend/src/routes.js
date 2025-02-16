@@ -5,13 +5,14 @@ import Profile from "views/admin/profile";
 import Statistics from "views/admin/default";
 
 // Icon Imports
-import { MdPerson, MdBarChart } from "react-icons/md";
+import { MdPerson, MdBarChart, MdTask } from "react-icons/md";
 import ClockIcon from "components/icons/ClockIcon"; // Memory Icon
 import TablesIcon from "components/icons/TablesIcon"; // Timeline Icon
 
 // Page Imports
 import MemoryPage from "views/MemoryPage";
-import TimelinePage from "views/TimelinePage"; // New Timeline Page
+import TimelinePage from "views/TimelinePage";
+import PersonalTasks from "views/PersonalTasksPage.jsx";
 
 const routes = [
   {
@@ -34,6 +35,13 @@ const routes = [
     path: "timeline",
     icon: <TablesIcon className="h-6 w-6" />,
     component: <TimelinePage />,
+  },
+  {
+    name: "Personal Tasks",
+    layout: "/admin",
+    path: "personal-tasks",
+    icon: <MdTask className="h-6 w-6" />,
+    component: <PersonalTasks />,
   },
   {
     name: "Statistics",
