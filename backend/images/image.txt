@@ -1,1 +1,8 @@
 C:\Users\33576\IdeaProjects\Eterna\backend\imagesninym_ralei_leaf.jpg.jpg,eye,facial expression,long hair,cg artwork,cartoon,hime cut,anime,animation,fictional character,brown hair
+
+images/beach.png,vacation,beach,family
+images/dog.jpg,pets,dog,park
+images/food_pizza.jpg,food,pizza,dinner
+images/notebook.png,study,notes,math
+images/sunset.jpg,nature,sunset,travel
+C:\Users\ethan\Pictures\Screenshots\m2.png,eyebrow,facial hair,beard,jaw,finger,facial expression,moustache,gesture,muscle,thumb,person

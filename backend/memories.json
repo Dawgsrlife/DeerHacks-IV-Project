@@ -1,32 +1,34 @@
-[
-  {
+{
+  "images": [
+    {
     "image_path": "images/beach.png",
     "description": "Trip to the beach with family.",
     "tags": ["vacation", "beach", "family"],
     "date_added": "2023-07-15"
-  },
-  {
+    },
+    {
     "image_path": "images/dog.jpg",
     "description": "Playing with my dog in the park.",
     "tags": ["pets", "dog", "park"],
     "date_added": "2023-08-10"
-  },
-  {
+    },
+    {
     "image_path": "images/food_pizza.jpg",
     "description": "Had the best pizza ever!",
     "tags": ["food", "pizza", "dinner"],
     "date_added": "2023-06-05"
-  },
-  {
+    },
+    {
     "image_path": "images/notebook.png",
     "description": "Math notes from college.",
     "tags": ["study", "notes", "math"],
     "date_added": "2022-09-20"
-  },
-  {
+    },
+    {
     "image_path": "images/sunset.jpg",
     "description": "Beautiful sunset at the mountains.",
     "tags": ["nature", "sunset", "travel"],
     "date_added": "2023-05-30"
-  }
-]
+    }
+  ]
+}

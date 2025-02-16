@@ -56,6 +56,7 @@ sys_instr = (prmt_context + "\nSTART OF TAGS\n" +
              instruction)
 
 # dictionaries
+memories = {}
 # each tag has a list of images that has that tag
 tags_to_imgpth = {}
 
@@ -321,16 +322,19 @@ def get_related_imgpths(ai_tags: list[str]) -> list[str]:
 #         images.append()
 #     return images
 
-load_imgs()
-load_dotenv()
-
 # =====================================================================
 
 # Define paths
 BASE_DIR = os.getcwd()
-MEMORIES_FILE = os.path.join(BASE_DIR, "backend", "memories.json")
+MEMORIES_FILE = os.path.join(BASE_DIR, "memories.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "backend", "images")
 
+def validate_memory_file():
+    '''
+    Check if the memory file exists, and creates it if not.
+    '''
+    if not os.path.exists(MEMORIES_FILE):
+        open(MEMORIES_FILE, 'x').close()
 
 @app.route('/images/<path:filename>')
 def get_image(filename):
@@ -339,30 +343,26 @@ def get_image(filename):
 
 def load_memories():
     """Loads memories from the JSON file and maps image paths correctly."""
-    if not os.path.exists(MEMORIES_FILE):
-        return []
-
+    validate_memory_file()
     with open(MEMORIES_FILE, "r") as f:
-        try:
-            memories = json.load(f)
-        except json.JSONDecodeError:
-            return []
-
-    for memory in memories:
-        if "image_path" in memory:
-            image_filename = os.path.basename(memory["image_path"])
-            memory["image_url"] = f"/images/{image_filename}" if os.path.exists(
-                os.path.join(IMAGES_DIR, image_filename)) else None
-
+        json_str = f.read()
+        global memories
+        memories = json.loads(json_str)
     print(memories)
-    return memories
+    for image in memories["images"]:
+        for tag in image["tags"]:
+            tags_to_imgpth.setdefault(tag, []).append(image["image_path"])
+            imgpth_to_tags.setdefault(image["image_path"], []).append(tag)
 
 
 @app.route('/timeline', methods=['GET'])
 def get_timeline():
     """API endpoint to fetch all memories for the timeline."""
-    return jsonify({"memories": load_memories()})
+    return jsonify(memories)
 
+load_imgs()
+load_dotenv()
+load_memories()
 
 # Run Flask app
 if __name__ == '__main__':
