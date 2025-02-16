@@ -46,8 +46,10 @@ imgpth_to_img = {}
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def load_image(file) -> Union[Image.Image, None]:
     try:
@@ -93,6 +95,7 @@ def upload_folder(folder: str):
     for image in images:
         print("uploading " + image + '...')
         upload_with_args(folder + '/' + image)
+
 
 def upload_with_args(image_path: str):
 
@@ -193,10 +196,7 @@ def update_system_instructions():
             "\n".join(tags) + "\nEND OF TAGS\n" +
              instruction)
 
-'''
-This method must be called after app is about to close
-'''
-@app.route('/save_imgs', methods=['POST'])
+
 def save_imgs():
     file_path = os.getcwd() + "\\images\\image.txt"
     os.mkdir(os.getcwd() + "\\images\\")
@@ -277,7 +277,6 @@ load_imgs()
 load_dotenv()
 
 if __name__ == '__main__':
-    app.run(debug=True) #
-    # you can test functions by entering into your browser
+    app.run(debug=True) # you can test functions by entering into your browser
                                    # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
     # Open http://127.0.0.1:5000 to check if the backend is running!
