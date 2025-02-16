@@ -26,13 +26,13 @@ const Timeline = () => {
                 date_added: "2023-08-10",
             },
             {
-                image_path: "http://127.0.0.1:5000/images/food_pizza.jpg",
+                image_path: "http://127.0.0.1:5000/images/food_pizza.png",
                 description: "Had the best pizza ever!",
                 tags: ["food", "pizza", "dinner"],
                 date_added: "2023-06-05",
             },
             {
-                image_path: "http://127.0.0.1:5000/images/notebook.png",
+                image_path: "http://127.0.0.1:5000/images/notebook.jpg",
                 description: "Math notes from college.",
                 tags: ["study", "notes", "math"],
                 date_added: "2022-09-20",
