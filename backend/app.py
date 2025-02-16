@@ -77,8 +77,7 @@ def upload():
     # other 3 parameters
     path = request.args.get("path")
     name = request.args.get("name")
-    fmt = request.args.get("format")
-    img_str = path + name + '.' + fmt
+    img_str = path + name
 
     unprocessed_tags = categorize(req_file)
     print(unprocessed_tags)
@@ -87,6 +86,7 @@ def upload():
     print(tags)
     print(tags_to_imgpth)
     print(imgpth_to_tags)
+    save_imgs()
     return jsonify({"tags": processed_tags})
 
 
