@@ -214,7 +214,7 @@ def save_imgs():
     create_resource_directory()
     with open(os.path.join(local_resource_dir, 'image.txt'), "w") as f:
         for path in imgpth_to_tags:
-            f.write(path + "," + ",".join(imgpth_to_tags[path]))
+            f.write(path + "," + ",".join(imgpth_to_tags[path]) + "\n")
 
 def load_imgs():
     create_resource_directory()

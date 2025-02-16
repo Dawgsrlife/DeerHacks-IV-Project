@@ -2,7 +2,7 @@ import requests
 
 url = "http://localhost:5000/upload_with_tag"
 
-image_path = r"C:\Users\ethan\Pictures\Screenshots\m2.png"
+image_path = r"C:\Users\ethan\Pictures\Screenshots\Screenshot 2025-01-11 183545.png"
 name = image_path.split("\\")[-1]
 fmt = image_path.split(".")[-1]
 path = "\\".join(image_path.split("\\")[:-1])
