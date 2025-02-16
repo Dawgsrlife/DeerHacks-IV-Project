@@ -1,5 +1,6 @@
 import os
 import subprocess
+import threading
 import types
 import io
 import json
@@ -21,14 +22,12 @@ from authentication import authenticate_with_api_key
 # from flask_limiter.util import get_remote_address
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="backend/images")
 
 
-# Start React when Flask starts
-@app.before_first_request
+# Function to start React in a separate thread
 def start_react():
     try:
-        # Run "npm start" inside the frontend folder
         subprocess.Popen("npm start", shell=True, cwd="frontend")
     except Exception as e:
         print(f"Error starting React: {e}")
@@ -42,10 +41,10 @@ def index():
 
 prmt_context = "You are the brain of a system with a tagged photo gallery and a to-do list. Below are the existing tags:"
 instruction = (
-            "The user will provide you with a description of what they are trying to find, which can range from a specific photo or a reminder on the to-do list." +
-            "Your job is to figure out which tags are related to their description and provide it to them. The only thing you should respond with are the tags you deemed to be fitting, each on a new line, or ERROR if the user input does not make sense.\n" +
-            "For example, suppose the system contains the following tags:\nschool notes\nscenery\nfood\nmath\n\nSuppose the user asks \"Find the math problem I was working on last week.\" Below is what your response should be:\n"
-            "school notes\nmath\n")
+        "The user will provide you with a description of what they are trying to find, which can range from a specific photo or a reminder on the to-do list." +
+        "Your job is to figure out which tags are related to their description and provide it to them. The only thing you should respond with are the tags you deemed to be fitting, each on a new line, or ERROR if the user input does not make sense.\n" +
+        "For example, suppose the system contains the following tags:\nschool notes\nscenery\nfood\nmath\n\nSuppose the user asks \"Find the math problem I was working on last week.\" Below is what your response should be:\n"
+        "school notes\nmath\n")
 
 # list of tags
 tags = []
@@ -327,91 +326,42 @@ load_dotenv()
 
 # =====================================================================
 
-# Initialize Flask App
-app = Flask(__name__)
-
-# Define paths for memories file and images directory
-MEMORIES_FILE = os.path.join(os.getcwd(), "backend", "memories.json")
-IMAGES_DIR = os.path.join(os.getcwd(), "backend", "images")
+# Define paths
+BASE_DIR = os.getcwd()
+MEMORIES_FILE = os.path.join(BASE_DIR, "backend", "memories.json")
+IMAGES_DIR = os.path.join(BASE_DIR, "backend", "images")
 
 
-# Load memories from JSON file
+@app.route('/images/<path:filename>')
+def get_image(filename):
+    return send_from_directory(IMAGES_DIR, filename)
+
+
 def load_memories():
     """Loads memories from the JSON file and maps image paths correctly."""
     if not os.path.exists(MEMORIES_FILE):
-        return {"memories": []}
+        return []
 
-    try:
-        with open(MEMORIES_FILE, "r") as file:
-            data = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {"memories": []}
+    with open(MEMORIES_FILE, "r") as f:
+        try:
+            memories = json.load(f)
+        except json.JSONDecodeError:
+            return []
 
-    # Ensure image paths are correct
-    for memory in data.get("memories", []):
-        memory["images"] = [
-            f"/images/{img}" for img in memory.get("images", []) if os.path.exists(os.path.join(IMAGES_DIR, img))
-        ]
+    for memory in memories:
+        if "image_path" in memory:
+            image_filename = os.path.basename(memory["image_path"])
+            memory["image_url"] = f"/images/{image_filename}" if os.path.exists(
+                os.path.join(IMAGES_DIR, image_filename)) else None
 
-    return data
-
-
-# Save memories to JSON file
-def save_memories(memories):
-    """Save updated memory data to file."""
-    with open(MEMORIES_FILE, "w") as file:
-        json.dump({"memories": memories}, file, indent=4)
+    print(memories)
+    return memories
 
 
-# API: Fetch Timeline Data
 @app.route('/timeline', methods=['GET'])
 def get_timeline():
-    """Fetch all memories and return them in chronological order."""
-    memories = load_memories().get("memories", [])
-
-    # Sort memories by date (most recent first)
-    sorted_memories = sorted(memories, key=lambda m: m["date_added"], reverse=True)
-
-    return jsonify({"memories": sorted_memories})
-
-
-# API: Search for Memories Based on Query
-@app.route('/search', methods=['GET'])
-def search():
-    """Search memories based on description or tags."""
-    description = request.args.get('desc', '').lower()
-    memories = load_memories().get("memories", [])
-
-    # Find matching memories
-    results = [
-        memory for memory in memories
-        if description in memory["description"].lower() or any(description in tag for tag in memory["tags"])
-    ]
-
-    if not results:
-        return jsonify({"error": "No memories found"}), 404
-
-    return jsonify({
-        "images": [memory["images"] for memory in results if memory["images"]],
-        "tags": list(set(tag for memory in results for tag in memory["tags"]))
-    })
-
-
-# API: Add a New Memory
-@app.route('/add_memory', methods=['POST'])
-def add_memory():
-    """Add a new memory with an image path, description, tags, and date."""
-    data = request.json
-    required_fields = {"image_path", "description", "tags", "date_added"}
-
-    if not data or not required_fields.issubset(data):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    memories = load_memories().get("memories", [])
-    memories.append(data)
-    save_memories(memories)
-
-    return jsonify({"message": "Memory added successfully!"})
+    """API endpoint to fetch all memories for the timeline."""
+    return jsonify({"memories": load_memories()})
 
 
 # Run Flask app
