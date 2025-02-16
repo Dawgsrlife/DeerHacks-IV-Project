@@ -336,11 +336,8 @@ def validate_memory_file():
     if not os.path.exists(MEMORIES_FILE):
         open(MEMORIES_FILE, 'x').close()
 
-@app.route('/images/<path:filename>')
-def get_image(filename):
-    return send_from_directory(IMAGES_DIR, filename)
 
-
+# Load existing memories
 def load_memories():
     """Loads memories from the JSON file and maps image paths correctly."""
     validate_memory_file()

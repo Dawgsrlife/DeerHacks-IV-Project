@@ -48,3 +48,4 @@ build/
 git add .gitignore
 git commit -m "Updated .gitignore file"
 git push origin main
+/backend/app.spec

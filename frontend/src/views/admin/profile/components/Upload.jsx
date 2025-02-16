@@ -5,8 +5,11 @@ import { BsUpload } from "react-icons/bs";
 const Upload = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [aiTags, setAiTags] = useState([]); // Store AI-generated tags
 
+  // Handle File Selection
   const handleFileChange = (event) => {
     const file = event.target.files[0];
 
@@ -18,25 +21,35 @@ const Upload = () => {
     }
   };
 
+  // Handle Upload
   const handleUpload = async () => {
-    if (!selectedFile) {
-      alert("No file selected!");
+    if (!selectedFile || !description.trim()) {
+      alert("Please select a file and enter a description.");
       return;
     }
 
     setUploading(true);
-
     const formData = new FormData();
     formData.append("image", selectedFile);
+    formData.append("description", description);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/upload", {
+      const response = await fetch("http://127.0.0.1:5000/upload_with_tag", {
         method: "POST",
         body: formData,
       });
 
       const result = await response.json();
-      alert(`Upload successful: ${result.message}`);
+
+      if (response.ok) {
+        alert("Upload successful!");
+        setAiTags(result.memory.tags || []); // Store AI tags
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        setDescription("");
+      } else {
+        alert(`Error: ${result.error}`);
+      }
     } catch (error) {
       alert("Upload failed. Please try again.");
     }
@@ -84,6 +97,15 @@ const Upload = () => {
               </div>
           )}
 
+          {/* Description Input */}
+          <input
+              type="text"
+              placeholder="Enter a short description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-4 p-2 w-full border rounded-md text-gray-800 dark:text-white dark:bg-navy-900"
+          />
+
           <button
               onClick={handleUpload}
               disabled={uploading}
@@ -92,6 +114,20 @@ const Upload = () => {
             {uploading ? "Uploading..." : "Upload Image"}
           </button>
         </div>
+
+        {/* Display AI Tags */}
+        {aiTags.length > 0 && (
+            <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+              <h3 className="text-lg font-bold text-navy-700 dark:text-white">AI-Generated Tags:</h3>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {aiTags.map((tag, index) => (
+                    <span key={index} className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg">
+                {tag}
+              </span>
+                ))}
+              </div>
+            </div>
+        )}
       </Card>
   );
 };
