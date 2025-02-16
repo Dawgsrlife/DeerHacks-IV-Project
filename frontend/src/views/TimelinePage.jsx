@@ -8,49 +8,36 @@ const Timeline = () => {
     const [memories, setMemories] = useState([]);
     const [sortOrder, setSortOrder] = useState("desc");
 
+    // Fetch memories from backend
     useEffect(() => {
-        // Load images directly from backend directory
-        const fetchedMemories = [
-            {
-                image_path: "http://127.0.0.1:5000/images/beach.png",
-                description: "Trip to the beach with family.",
-                tags: ["vacation", "beach", "family"],
-                date_added: "2023-07-15"
-            },
-            {
-                image_path: "/backend/images/dog.jpg",
-                description: "Playing with my dog in the park.",
-                tags: ["pets", "dog", "park"],
-                date_added: "2023-08-10"
-            },
-            {
-                image_path: "/backend/images/food_pizza.jpg",
-                description: "Had the best pizza ever!",
-                tags: ["food", "pizza", "dinner"],
-                date_added: "2023-06-05"
-            },
-            {
-                image_path: "/backend/images/notebook.png",
-                description: "Math notes from college.",
-                tags: ["study", "notes", "math"],
-                date_added: "2022-09-20"
-            },
-            {
-                image_path: "/backend/images/sunset.jpg",
-                description: "Beautiful sunset at the mountains.",
-                tags: ["nature", "sunset", "travel"],
-                date_added: "2023-05-30"
-            }
-        ];
+        const fetchMemories = async () => {
+            try {
+                const response = await fetch("http://127.0.0.1:5000/timeline");
+                const data = await response.json();
 
-        // Sort memories by date
-        const sortedMemories = fetchedMemories.sort((a, b) => {
-            return sortOrder === "desc"
-                ? new Date(b.date_added) - new Date(a.date_added)
-                : new Date(a.date_added) - new Date(b.date_added);
-        });
-        setMemories(sortedMemories);
-    }, [sortOrder]);
+                if (data.memories) {
+                    // Ensure correct image paths
+                    const formattedMemories = data.memories.map((memory) => ({
+                        ...memory,
+                        image_path: `http://127.0.0.1:5000${memory.image_path}`, // Backend serves images statically
+                    }));
+
+                    setMemories(formattedMemories);
+                }
+            } catch (error) {
+                console.error("Error fetching memories:", error);
+            }
+        };
+
+        fetchMemories();
+    }, []);
+
+    // Sort memories based on user selection
+    const sortedMemories = [...memories].sort((a, b) => {
+        return sortOrder === "desc"
+            ? new Date(b.date_added) - new Date(a.date_added)
+            : new Date(a.date_added) - new Date(b.date_added);
+    });
 
     return (
         <div className="p-6">
@@ -78,7 +65,7 @@ const Timeline = () => {
             </div>
 
             <div className="relative border-l-4 border-blue-500 pl-4 space-y-8">
-                {memories.map((memory, index) => (
+                {sortedMemories.map((memory, index) => (
                     <div key={index} className="relative flex items-center space-x-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300 ease-in-out">
                         <div className="absolute -left-5 w-14 h-14 bg-blue-500 text-white rounded-full flex flex-col items-center justify-center font-bold text-sm shadow-md">
                             <span className="text-lg">{moment(memory.date_added).format("DD")}</span>
