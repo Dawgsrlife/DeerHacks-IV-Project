@@ -6,9 +6,12 @@ import Statistics from "views/admin/default";
 
 // Icon Imports
 import { MdPerson, MdBarChart } from "react-icons/md";
+import ClockIcon from "components/icons/ClockIcon"; // Memory Icon
+import TablesIcon from "components/icons/TablesIcon"; // Timeline Icon
 
-// Memory Page Import
-import MemoryPage from "./views/MemoryPage";
+// Page Imports
+import MemoryPage from "views/MemoryPage";
+import TimelinePage from "views/TimelinePage"; // New Timeline Page
 
 const routes = [
   {
@@ -19,17 +22,25 @@ const routes = [
     component: <Profile />,
   },
   {
+    name: "Memory",
+    layout: "/admin",
+    path: "memory/:query",
+    icon: <ClockIcon className="h-6 w-6" />,
+    component: <MemoryPage />,
+  },
+  {
+    name: "Timeline",
+    layout: "/admin",
+    path: "timeline",
+    icon: <TablesIcon className="h-6 w-6" />,
+    component: <TimelinePage />,
+  },
+  {
     name: "Statistics",
     layout: "/admin",
     path: "statistics",
-    icon: <MdBarChart className="h-6 w-6" />, // Updated icon to represent stats
+    icon: <MdBarChart className="h-6 w-6" />,
     component: <Statistics />,
-  },
-  {
-    path: "/memory/:query",
-    name: "Memory",
-    layout: "/admin",
-    component: <MemoryPage />,
   },
 ];
 
