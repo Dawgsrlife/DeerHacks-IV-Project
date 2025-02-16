@@ -186,6 +186,22 @@ def update_system_instructions():
             "\n".join(tags) + "\nEND OF TAGS\n" +
              instruction)
 
+def save_imgs():
+    file_path = os.getcwd() + "\\images\\image.txt"
+    with open(file_path, "w") as f:
+        for path in imgpth_to_tags:
+            f.write(path + ", " + ",".join(imgpth_to_tags[path]))
+
+def load_imgs():
+    file_path = os.getcwd() + "\\images\\image.txt"
+    with open(file_path, "r") as f:
+        keys = f.readline().split(",")
+        for tag in keys[1:]:
+            tags.append(tag)
+            tags_to_imgpth.setdefault(tag, []).append(keys[0])
+            imgpth_to_tags.setdefault(keys[0], []).append(tag)
+
+
 # '''
 # Testing function
 # '''
@@ -243,12 +259,6 @@ def get_imgs_from_path(paths: list[str]) -> list:
         images.append(imgpth_to_img[path])
     return images
 
-'''
-Sample function, safe to ignore
-'''
-@app.route('/')
-def home():
-    return jsonify({"message": "Backend is running!"})
 
 
 if __name__ == '__main__':
