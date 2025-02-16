@@ -331,31 +331,93 @@ BASE_DIR = os.getcwd()
 MEMORIES_FILE = os.path.join(BASE_DIR, "backend", "memories.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "backend", "images")
 
-
-@app.route('/images/<path:filename>')
-def get_image(filename):
-    return send_from_directory(IMAGES_DIR, filename)
+# Ensure images directory exists
+os.makedirs(IMAGES_DIR, exist_ok=True)
 
 
+# Load existing memories
 def load_memories():
-    """Loads memories from the JSON file and maps image paths correctly."""
     if not os.path.exists(MEMORIES_FILE):
         return []
-
     with open(MEMORIES_FILE, "r") as f:
         try:
-            memories = json.load(f)
+            return json.load(f)
         except json.JSONDecodeError:
             return []
 
-    for memory in memories:
-        if "image_path" in memory:
-            image_filename = os.path.basename(memory["image_path"])
-            memory["image_url"] = f"/images/{image_filename}" if os.path.exists(
-                os.path.join(IMAGES_DIR, image_filename)) else None
 
-    print(memories)
-    return memories
+# Save memories to file
+def save_memories(memories):
+    with open(MEMORIES_FILE, "w") as f:
+        json.dump(memories, f, indent=4)
+
+
+# Serve images statically
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(IMAGES_DIR, filename)
+
+
+# Use Vision AI to analyze the image and return tags
+def categorize_image(image_data):
+    auth = authenticate_with_api_key(os.getenv("GOOGLE_VISION_KEY"))
+    if not auth:
+        print("Authentication failed")
+        return []
+
+    client = vision.ImageAnnotatorClient()
+    img = vision.Image(content=image_data.read())
+
+    features = [
+        vision.Feature.Type.LABEL_DETECTION,
+        vision.Feature.Type.LANDMARK_DETECTION,
+        vision.Feature.Type.OBJECT_LOCALIZATION,
+        vision.Feature.Type.LOGO_DETECTION,
+    ]
+
+    req = vision.AnnotateImageRequest(image=img, features=[vision.Feature(type_=ft) for ft in features])
+    response = client.annotate_image(request=req)
+
+    tags = []
+    for label in response.label_annotations:
+        tags.append(label.description.lower())
+
+    return list(set(tags))  # Ensure unique tags
+
+
+# Upload an image and auto-generate tags
+@app.route('/upload_with_tag', methods=['POST'])
+def upload_image():
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+
+    image = request.files["image"]
+    description = request.form.get("description", "No description")
+    date_added = datetime.now().strftime("%Y-%m-%d")
+
+    if image.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+
+    # Save the image
+    image_path = os.path.join(IMAGES_DIR, image.filename)
+    image.save(image_path)
+
+    # Auto-tag using AI
+    image.seek(0)  # Reset file pointer for AI processing
+    generated_tags = categorize_image(image)
+
+    # Update memories.json
+    memories = load_memories()
+    new_memory = {
+        "image_path": f"/images/{image.filename}",
+        "description": description,
+        "tags": generated_tags,
+        "date_added": date_added
+    }
+    memories.append(new_memory)
+    save_memories(memories)
+
+    return jsonify({"message": "Image uploaded successfully!", "memory": new_memory})
 
 
 @app.route('/timeline', methods=['GET'])
