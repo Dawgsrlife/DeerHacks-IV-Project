@@ -2,14 +2,14 @@ import requests
 
 url = "http://localhost:5000/upload_with_tag"
 
-image_path = "C:\\Users\\ethan\\Pictures\\irl\\IMG_20240930_223539.jpg"
+image_path = r"C:\Users\ethan\Pictures\Screenshots\m2.png"
 name = image_path.split("\\")[-1]
 fmt = image_path.split(".")[-1]
 path = "\\".join(image_path.split("\\")[:-1])
 
 with open(image_path, "rb") as img:
     files = {"image": img}
-    datas =  {"name": "party", "format": "jpg", "path": ""}
+    datas =  {"name": name, "format": fmt, "path": path}
     # print(img)
-    response = requests.get(url, files=files, params=datas)
+    response = requests.post(url, files=files, params=datas)
     print(response.json())
