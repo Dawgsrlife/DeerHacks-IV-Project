@@ -21,7 +21,7 @@ const Timeline = () => {
                 // Adjust image paths to match backend route
                 const formattedMemories = data.images.map(memory => ({
                     ...memory,
-                    image_path: `http://127.0.0.1:5000/${memory.image_path}`
+                    image_path: ''
                 }));
 
                 setMemories(formattedMemories);
