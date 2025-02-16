@@ -4,11 +4,44 @@ import { MdArrowBack } from "react-icons/md";
 import Card from "components/card";
 import axios from "axios";
 
+const sampleMemories = [
+    {
+        image_path: "images/beach.png",
+        description: "Trip to the beach with family.",
+        summary: "A relaxing family trip to the beach on a sunny day.",
+        tags: ["vacation", "beach", "family"],
+    },
+    {
+        image_path: "images/dog.jpg",
+        description: "Playing with my dog in the park.",
+        summary: "Spent the afternoon playing fetch with my dog.",
+        tags: ["pets", "dog", "park"],
+    },
+    {
+        image_path: "images/food_pizza.jpg",
+        description: "Had the best pizza ever!",
+        summary: "Tried a new pizza place, and it was delicious.",
+        tags: ["food", "pizza", "dinner"],
+    },
+    {
+        image_path: "images/notebook.png",
+        description: "Math notes from college.",
+        summary: "Studying calculus for an upcoming test.",
+        tags: ["study", "notes", "math"],
+    },
+    {
+        image_path: "images/sunset.jpg",
+        description: "Beautiful sunset at the mountains.",
+        summary: "Captured an amazing sunset view while hiking.",
+        tags: ["nature", "sunset", "travel"],
+    }
+];
+
 const MemoryPage = () => {
-    const { query } = useParams(); // Get the search query from URL
+    const { query } = useParams();
     const navigate = useNavigate();
-    const location = useLocation(); // Track location changes
-    const [memoryData, setMemoryData] = useState({ images: [], tags: [] });
+    const location = useLocation();
+    const [memoryData, setMemoryData] = useState({ images: [], summaries: [], tags: [] });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -19,20 +52,32 @@ const MemoryPage = () => {
             try {
                 const response = await axios.get(`http://127.0.0.1:5000/search?desc=${encodeURIComponent(query)}`);
                 if (!response.data || response.data.images.length === 0) {
-                    setMemoryData({ images: [], tags: [] });
+                    setMemoryData({ images: [], summaries: [], tags: [] });
                 } else {
-                    setMemoryData({ images: response.data.images, tags: response.data.tags || [] });
+                    setMemoryData({
+                        images: response.data.images,
+                        summaries: response.data.summaries || [],
+                        tags: response.data.tags || []
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching memory:", error);
-                setMemoryData({ images: [], tags: [] });
+                setMemoryData({ images: [], summaries: [], tags: [] });
             } finally {
                 setLoading(false);
             }
         };
 
         fetchMemory();
-    }, [query, location.key]); // Re-fetch when query or navigation changes
+    }, [query, location.key]);
+
+    // If API doesn't return results, use sample memories
+    const displayMemories = memoryData.images.length > 0 ? memoryData.images.map((imgPath, index) => ({
+        image_path: imgPath,
+        description: `Memory ${index + 1}`,
+        summary: memoryData.summaries[index] || "No summary available.",
+        tags: memoryData.tags || []
+    })) : sampleMemories;
 
     return (
         <div className="flex flex-col items-center p-6">
@@ -50,37 +95,27 @@ const MemoryPage = () => {
             {/* Loading State */}
             {loading && <p className="mt-4 text-gray-600">Loading memory...</p>}
 
-            {/* No Results Found */}
-            {!loading && memoryData.images.length === 0 && (
-                <p className="mt-4 text-red-500">No related memory found.</p>
-            )}
-
             {/* Memory Display */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-                {memoryData.images.map((imgPath, index) => (
+                {displayMemories.map((memory, index) => (
                     <Card key={index} extra="p-4">
                         <img
-                            src={`http://127.0.0.1:5000/${imgPath}`} // Backend should serve images
-                            alt={`Memory ${index}`}
+                            src={`http://127.0.0.1:5000/${memory.image_path}`}
+                            alt={memory.description}
                             className="w-full rounded-lg shadow-md"
                         />
+                        <h3 className="mt-2 text-lg font-semibold text-navy-700 dark:text-white">{memory.description}</h3>
+                        <p className="text-gray-600 dark:text-gray-300">{memory.summary}</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {memory.tags.map((tag, i) => (
+                                <span key={i} className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
                     </Card>
                 ))}
             </div>
-
-            {/* Tags Display */}
-            {memoryData.tags.length > 0 && (
-                <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-navy-700 dark:text-white">Tags:</h3>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {memoryData.tags.map((tag, index) => (
-                            <span key={index} className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
