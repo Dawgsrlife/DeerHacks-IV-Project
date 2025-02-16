@@ -16,7 +16,7 @@ const Timeline = () => {
                 const response = await fetch("http://127.0.0.1:5000/timeline");
                 const data = await response.json();
 
-                if (!data.memories) throw new Error("No memories found");
+                if (!data.images) throw new Error("No memories found");
 
                 // Adjust image paths to match backend route
                 const formattedMemories = data.memories.map(memory => ({
