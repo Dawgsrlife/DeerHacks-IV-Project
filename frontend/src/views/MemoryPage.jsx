@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { MdArrowBack } from "react-icons/md";
 import Card from "components/card";
-import { useNavigate } from "react-router-dom";
 
 const MemoryPage = () => {
-    const { query } = useParams(); // Get the search query from the URL
+    const { query } = useParams(); // Get the search query from URL
     const navigate = useNavigate();
     const [memoryData, setMemoryData] = useState({ images: [], tags: [] });
     const [loading, setLoading] = useState(true);
@@ -32,10 +31,7 @@ const MemoryPage = () => {
     return (
         <div className="flex flex-col items-center p-6">
             {/* Back Button */}
-            <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-gray-600 hover:text-blue-500"
-            >
+            <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-blue-500">
                 <MdArrowBack className="w-5 h-5" />
                 <span>Back</span>
             </button>
@@ -72,10 +68,7 @@ const MemoryPage = () => {
                     <h3 className="text-lg font-semibold text-navy-700 dark:text-white">Tags:</h3>
                     <div className="flex flex-wrap gap-2 mt-2">
                         {memoryData.tags.map((tag, index) => (
-                            <span
-                                key={index}
-                                className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg"
-                            >
+                            <span key={index} className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg">
                 {tag}
               </span>
                         ))}
