@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Find AI Ethics Papers",
+    "status": "Success",
+    "date": "15.Feb.2025",
+    "progress": 87
+  },
+  {
+    "name": "Retrieve Quantum Computing Notes",
+    "status": "Processing",
+    "date": "30.Jan.2025",
+    "progress": 74
+  },
+  {
+    "name": "Summarize Personal Journal",
+    "status": "Failed",
+    "date": "15.Jan.2025",
+    "progress": 45
+  },
+  {
+    "name": "Analyze Historical Events",
+    "status": "Success",
+    "date": "20.Dec.2024",
+    "progress": 92
+  },
+  {
+    "name": "Extract Research Papers",
+    "status": "Success",
+    "date": "10.Nov.2024",
+    "progress": 95
+  }
+]
