@@ -110,6 +110,37 @@ def upload():
     imgpth_to_img[img_str] = req_file
     return jsonify({"tags": processed_tags})
 
+
+def upload_folder(folder: str):
+    images = get_files_from_folder(folder)
+    for image in images:
+        print("uploading " + image + '...')
+        upload_with_args(folder + '/' + image)
+        
+def upload_with_args(image_path: str):
+
+    with open(image_path, "rb") as f:
+        req_file = io.BytesIO(f.read())
+
+        unprocessed_tags = categorize(req_file)
+        print(unprocessed_tags)
+        processed_tags = process_ai_response(unprocessed_tags)
+        assign_tags_to_imgpth(processed_tags, image_path)
+        print(tags)
+        return jsonify({"tags": processed_tags})
+
+
+def get_files_from_folder(folder: str) -> list[Image]:
+    directory = os.fsencode(folder)
+    output_list = []
+
+    for file in os.listdir(directory):
+
+        if allowed_file(file.filename) and file.mimetype.startswith('image/'):
+            output_list.append(file)
+
+    return output_list
+
 '''
 given a context string, categorize the text into several tags, both new and existing
 '''
