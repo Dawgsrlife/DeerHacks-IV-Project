@@ -8,6 +8,7 @@ const Upload = () => {
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
   const [aiTags, setAiTags] = useState([]); // Store AI-generated tags
+  const [fileName, setFileName] = useState(""); // Display selected file name
 
   // Handle File Selection
   const handleFileChange = (event) => {
@@ -16,6 +17,7 @@ const Upload = () => {
     if (file && ["image/png", "image/jpg", "image/jpeg"].includes(file.type)) {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      setFileName(file.name); // Show file name
     } else {
       alert("Invalid file format! Please upload a PNG, JPG, or JPEG.");
     }
@@ -40,18 +42,21 @@ const Upload = () => {
       });
 
       const result = await response.json();
+      console.log("Upload response:", result);
 
       if (response.ok) {
         alert("Upload successful!");
-        setAiTags(result.memory.tags || []); // Store AI tags
+        setAiTags(result.tags || []); // Store AI tags (fix)
         setSelectedFile(null);
         setPreviewUrl(null);
         setDescription("");
+        setFileName(""); // Clear file name
       } else {
-        alert(`Error: ${result.error}`);
+        alert(`Error: ${result.error || "Something went wrong"}`);
       }
     } catch (error) {
-      alert("Upload failed. Please try again.");
+      alert("Upload failed. Check the console for errors.");
+      console.error("Upload error:", error);
     }
 
     setUploading(false);
@@ -86,6 +91,10 @@ const Upload = () => {
           >
             Choose File
           </label>
+
+          {fileName && (
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{fileName}</p>
+          )}
 
           {previewUrl && (
               <div className="mt-4">
@@ -122,8 +131,8 @@ const Upload = () => {
               <div className="flex flex-wrap gap-2 mt-2">
                 {aiTags.map((tag, index) => (
                     <span key={index} className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg">
-                {tag}
-              </span>
+                      {tag}
+                    </span>
                 ))}
               </div>
             </div>
