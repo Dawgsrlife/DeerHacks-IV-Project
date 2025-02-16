@@ -35,8 +35,13 @@ const Upload = () => {
     formData.append("image", selectedFile);
     formData.append("description", description);
 
+    const params = new URLSearchParams({
+      path: "images",
+      name: selectedFile.name
+    });
+
     try {
-      const response = await fetch("http://127.0.0.1:5000/upload_with_tag", {
+      const response = await fetch(`http://127.0.0.1:5000/upload_with_tag?${params.toString()}`, {
         method: "POST",
         body: formData,
       });
@@ -46,11 +51,11 @@ const Upload = () => {
 
       if (response.ok) {
         alert("Upload successful!");
-        setAiTags(result.tags || []); // Store AI tags (fix)
+        setAiTags(result.tags || []);
         setSelectedFile(null);
         setPreviewUrl(null);
         setDescription("");
-        setFileName(""); // Clear file name
+        setFileName("");
       } else {
         alert(`Error: ${result.error || "Something went wrong"}`);
       }
@@ -61,6 +66,7 @@ const Upload = () => {
 
     setUploading(false);
   };
+
 
   return (
       <Card extra={"w-full h-full p-4"}>

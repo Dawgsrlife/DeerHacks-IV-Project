@@ -10,9 +10,19 @@ import avatar from "assets/img/avatars/avatar.png";
 
 const Navbar = (props) => {
   const { onOpenSidenav, brandText } = props;
-  const [darkmode, setDarkmode] = React.useState(false);
+  const [darkmode, setDarkmode] = useState(false);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "Memory Retrieved", message: `"Trip to Japan 2023" ready.`, icon: <BsFileEarmarkText />, color: "bg-blue-500" },
+    { id: 2, title: "System Update", message: "Memory indexing complete.", icon: <BsCpu />, color: "bg-purple-500" }
+  ]);
+
+  // Clears all notifications
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
 
   // Handle search input
   const handleSearch = async (event) => {
@@ -32,6 +42,7 @@ const Navbar = (props) => {
 
   return (
       <nav className="sticky top-4 z-40 flex flex-row flex-wrap items-center justify-between rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
+
         {/* Branding & Page Title */}
         <div className="ml-[6px]">
           <div className="h-6 w-[224px] pt-1">
@@ -47,7 +58,7 @@ const Navbar = (props) => {
         </div>
 
         {/* Search Bar */}
-        <div className="relative mt-[3px] flex h-[61px] w-[355px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl dark:!bg-navy-800 md:w-[365px] md:flex-grow-0">
+        <div className="relative flex h-[61px] w-[355px] flex-grow items-center justify-around gap-2 rounded-full bg-white px-2 py-2 shadow-xl dark:!bg-navy-800 md:w-[365px] md:flex-grow-0">
           <div className="flex h-full items-center rounded-full bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px]">
             <p className="pl-3 pr-2 text-xl">
               <FiSearch className="h-4 w-4 text-gray-400 dark:text-white" />
@@ -56,47 +67,59 @@ const Navbar = (props) => {
                 type="text"
                 placeholder="Search Memories..."
                 className="block h-full w-full rounded-full bg-lightPrimary text-sm font-medium text-navy-700 outline-none placeholder:text-gray-400 dark:bg-navy-900 dark:text-white dark:placeholder:text-white"
-                onKeyDown={handleSearch} // Added event listener
+                onKeyDown={handleSearch}
             />
           </div>
 
           {/* Sidebar Toggle (Mobile) */}
           <span className="flex cursor-pointer text-xl text-gray-600 dark:text-white xl:hidden" onClick={onOpenSidenav}>
-          <FiAlignJustify className="h-5 w-5" />
-        </span>
+            <FiAlignJustify className="h-5 w-5" />
+          </span>
 
           {/* AI Notifications Dropdown */}
           <Dropdown
-              button={<p className="cursor-pointer"><BsBell className="h-4 w-4 text-gray-600 dark:text-white" /></p>}
+              button={
+                <p className="cursor-pointer relative">
+                  <BsBell className="h-5 w-5 text-gray-600 dark:text-white" />
+                  {notifications.length > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                      {notifications.length}
+                    </span>
+                  )}
+                </p>
+              }
               children={
-                <div className="flex w-[360px] flex-col gap-3 rounded-[20px] bg-white p-4 shadow-xl dark:bg-navy-700 dark:text-white">
+                <div className="flex w-[320px] flex-col gap-3 rounded-lg bg-white p-4 shadow-xl dark:bg-navy-700 dark:text-white">
+
+                  {/* Header */}
                   <div className="flex items-center justify-between">
-                    <p className="text-base font-bold text-navy-700 dark:text-white">AI Notifications</p>
-                    <p className="text-sm font-bold text-navy-700 dark:text-white cursor-pointer">Mark all read</p>
+                    <p className="text-base font-bold text-navy-700 dark:text-white">Notifications</p>
+                    {notifications.length > 0 && (
+                        <button onClick={clearNotifications} className="text-sm font-bold text-blue-500 hover:underline">
+                          Mark all as read
+                        </button>
+                    )}
                   </div>
 
-                  <button className="flex w-full items-center">
-                    <div className="flex h-full w-[85px] items-center justify-center rounded-xl bg-gradient-to-b from-blue-500 to-blue-700 py-4 text-2xl text-white">
-                      <BsFileEarmarkText />
-                    </div>
-                    <div className="ml-2 flex h-full w-full flex-col justify-center px-1 text-sm">
-                      <p className="mb-1 text-left text-base font-bold text-gray-900 dark:text-white">AI Memory Retrieved</p>
-                      <p className="text-xs text-left text-gray-900 dark:text-white">Your search results for "Trip to Japan 2023" are ready.</p>
-                    </div>
-                  </button>
-
-                  <button className="flex w-full items-center">
-                    <div className="flex h-full w-[85px] items-center justify-center rounded-xl bg-gradient-to-b from-purple-500 to-purple-700 py-4 text-2xl text-white">
-                      <BsCpu />
-                    </div>
-                    <div className="ml-2 flex h-full w-full flex-col justify-center px-1 text-sm">
-                      <p className="mb-1 text-left text-base font-bold text-gray-900 dark:text-white">AI System Update</p>
-                      <p className="text-xs text-left text-gray-900 dark:text-white">Memory indexing completed successfully.</p>
-                    </div>
-                  </button>
+                  {/* Notifications List */}
+                  {notifications.length > 0 ? (
+                      notifications.map((noti) => (
+                          <div key={noti.id} className="flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-full ${noti.color} text-white`}>
+                              {noti.icon}
+                            </div>
+                            <div className="text-sm">
+                              <p className="font-semibold text-gray-900 dark:text-white">{noti.title}</p>
+                              <p className="text-gray-500 dark:text-gray-400 text-xs">{noti.message}</p>
+                            </div>
+                          </div>
+                      ))
+                  ) : (
+                      <p className="text-gray-500 dark:text-gray-400 text-center text-sm">No new notifications</p>
+                  )}
                 </div>
               }
-              classNames={"py-2 top-4 -left-[230px] md:-left-[440px] w-max"}
+              classNames={"py-2 top-4 -left-[230px] md:-left-[340px] w-max"}
           />
 
           {/* Dark Mode Toggle */}
