@@ -241,14 +241,28 @@ def load_imgs():
 '''
 Given a context string describing image(s) to be found, compile a list of existing tags that match the context
 '''
+memory_cache = {}  # Simple dictionary for caching
+
+
 @app.route('/search', methods=['GET'])
 def search():
     description = request.args.get('desc', '')
+
+    # Check if query is already cached
+    if description in memory_cache:
+        return jsonify(memory_cache[description])
+
     suitable_tags = get_tags(description)
     if not suitable_tags:
         return jsonify({'error': 'No tags found'}), 404
+
     imgs = get_related_imgpths(suitable_tags)
-    return jsonify({'images': imgs})
+    response_data = {'images': imgs, 'tags': suitable_tags}
+
+    # Store in cache to avoid repeated API calls
+    memory_cache[description] = response_data
+
+    return jsonify(response_data)
 
 
 def get_tags(description: str) -> list[str]:
