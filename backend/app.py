@@ -1,7 +1,6 @@
 import os
 import types
 import io
-import atexit
 
 import requests
 
@@ -63,6 +62,22 @@ imgpth_to_tags = {}
 # each path has one image
 imgpth_to_img = {}
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def load_image(file) -> Union[Image.Image, None]:
+    try:
+        if not allowed_file(file.filename) or not file.mimetype.startswith('image/'):
+            return None
+        img = Image.open(file)
+        img.verify()
+        file.seek(0)
+        return Image.open(file)
+    except Exception:
+        return None
+
 
 '''
 Given file and context string, save it into the dictionary with the associated tags.
@@ -86,10 +101,8 @@ def upload():
     processed_tags = process_ai_response(unprocessed_tags)
     assign_tags_to_imgpth(processed_tags, img_str)
     print(tags)
-    imgpth_to_img[img_str] = req_file
     print(tags_to_imgpth)
     print(imgpth_to_tags)
-    save_imgs()
     return jsonify({"tags": processed_tags})
 
 
@@ -98,7 +111,7 @@ def upload_folder(folder: str):
     for image in images:
         print("uploading " + image + '...')
         upload_with_args(folder + '/' + image)
-        
+
 def upload_with_args(image_path: str):
 
     with open(image_path, "rb") as f:
@@ -212,8 +225,6 @@ def load_imgs():
     file_path = os.getcwd() + "\\images\\image.txt"
     with open(file_path, "r") as f:
         keys = f.readline().split(",")
-        print(keys)
-        print(keys[1:])
         for tag in keys[1:]:
             tags.append(tag)
             tags_to_imgpth.setdefault(tag, []).append(keys[0])
@@ -239,15 +250,13 @@ Given a context string describing image(s) to be found, compile a list of existi
 '''
 @app.route('/search', methods=['GET'])
 def search():
-    load_imgs()
     description = request.args['desc']
     suitable_tags = get_tags(description)
     if not suitable_tags:
         return jsonify({'error': 'No tags found'}), 404
     else:
-        paths = get_related_imgpths(suitable_tags)
-        imgs = get_imgs_from_path(paths)
-    # somehow return imgs
+        imgs = get_related_imgpths(suitable_tags)
+    return jsonify({'images': imgs})
 
 
 def get_tags(description: str) -> list[str]:
@@ -260,8 +269,7 @@ def get_tags(description: str) -> list[str]:
         ),
         contents=description
     )
-    print(response)
-    if response.text == "ERROR\n":
+    if response.text == "ERROR":
         return []
     return response.text.split("\n")
 
@@ -274,26 +282,17 @@ def get_related_imgpths(ai_tags: list[str]) -> list[str]:
     return paths
 
 
-def get_imgs_from_path(paths: list[str]) -> list:
-    images = []
-    for path in paths:
-        images.append(imgpth_to_img[path])
-    return images
+# def get_imgs_from_path(paths: list[str]) -> list:
+#     images = []
+#     for path in paths:
+#         images.append()
+#     return images
 
+load_imgs()
+load_dotenv()
 
 if __name__ == '__main__':
-    try:
-        load_dotenv()
-        load_imgs()
-        app.run(debug=True)  # you can test functions by entering into your browser
-        # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
-    # except KeyboardInterrupt:
-    #     print("Shutdown requested")
-    #     save_imgs()
-    # except SystemExit:
-    #     print("Shutdown requested")
-    #     save_imgs()
-    finally:
-        print("Closing app...")
-        save_imgs()
+    app.run(debug=True) # you can test functions by entering into your browser
+                                   # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
     # Open http://127.0.0.1:5000 to check if the backend is running!
+save_imgs()
