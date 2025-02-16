@@ -139,6 +139,7 @@ def get_files_from_folder(folder: str) -> list[Image]:
 
     return output_list
 
+
 '''
 given a context string, categorize the text into several tags, both new and existing
 '''
@@ -208,30 +209,37 @@ def assign_tags_to_imgpth(input_tags: list[str], image):
         tags_to_imgpth.setdefault(tag, []).append(image)
 
 
+# Function to update system instructions
 def update_system_instructions():
     global sys_instr
     sys_instr = (prmt_context + "\nSTART OF TAGS\n" +
-            "\n".join(tags) + "\nEND OF TAGS\n" +
-             instruction)
+                 "\n".join(tags) + "\nEND OF TAGS\n" + instruction)
 
 
+# Function to save image paths and their tags to a file
 def save_imgs():
-    file_path = os.getcwd() + "\\images\\image.txt"
-    os.mkdir(os.getcwd() + "\\images\\")
-    f = open(file_path, "x")
-    f.close()
+    file_path = os.path.join(os.getcwd(), "images", "image.txt")
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "w") as f:
         for path in imgpth_to_tags:
-            f.write(path + "," + ",".join(imgpth_to_tags[path]))
+            f.write(path + "," + ",".join(imgpth_to_tags[path]) + "\n")
 
+
+# Function to load image paths and their tags from a file
 def load_imgs():
-    file_path = os.getcwd() + "\\images\\image.txt"
+    file_path = os.path.join(os.getcwd(), "images", "image.txt")
+    if not os.path.exists(file_path):
+        return
     with open(file_path, "r") as f:
-        keys = f.readline().split(",")
-        for tag in keys[1:]:
-            tags.append(tag)
-            tags_to_imgpth.setdefault(tag, []).append(keys[0])
-            imgpth_to_tags.setdefault(keys[0], []).append(tag)
+        for line in f:
+            keys = line.strip().split(",")
+            if len(keys) < 2:
+                continue
+            img_path, *image_tags = keys
+            imgpth_to_tags[img_path] = image_tags
+            for tag in image_tags:
+                tags.append(tag)
+                tags_to_imgpth.setdefault(tag, []).append(img_path)
         update_system_instructions()
 
 
@@ -253,18 +261,16 @@ Given a context string describing image(s) to be found, compile a list of existi
 '''
 @app.route('/search', methods=['GET'])
 def search():
-    description = request.args['desc']
+    description = request.args.get('desc', '')
     suitable_tags = get_tags(description)
     if not suitable_tags:
         return jsonify({'error': 'No tags found'}), 404
-    else:
-        imgs = get_related_imgpths(suitable_tags)
+    imgs = get_related_imgpths(suitable_tags)
     return jsonify({'images': imgs})
 
 
 def get_tags(description: str) -> list[str]:
     interpreter = genai.Client(api_key=os.getenv("GEMINI_KEY"))
-
     response = interpreter.models.generate_content(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
@@ -277,11 +283,12 @@ def get_tags(description: str) -> list[str]:
     return response.text.split("\n")
 
 
+# Function to get related image paths based on AI-generated tags
 def get_related_imgpths(ai_tags: list[str]) -> list[str]:
     paths = []
     for tag in ai_tags:
         if tag in tags:
-            paths.extend([imp_pth for imp_pth in tags_to_imgpth[tag] if imp_pth not in paths])
+            paths.extend([img_pth for img_pth in tags_to_imgpth[tag] if img_pth not in paths])
     return paths
 
 
