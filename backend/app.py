@@ -1,4 +1,5 @@
 import os
+import subprocess
 import types
 import io
 import json
@@ -6,7 +7,7 @@ import json
 from PIL import Image
 from typing import Union, Sequence, BinaryIO, Any
 # for flask
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect
 from flask.cli import load_dotenv
 # for vision ai and gemini ai
 from google.cloud import vision
@@ -20,19 +21,37 @@ from authentication import authenticate_with_api_key
 # from flask_limiter.util import get_remote_address
 
 
-app = Flask(__name__, static_folder="../frontend/build", static_url_path="/")
+app = Flask(__name__)
+
+
+# Start React when Flask starts
+@app.before_first_request
+def start_react():
+    try:
+        # Run "npm start" inside the frontend folder
+        subprocess.Popen("npm start", shell=True, cwd="frontend")
+    except Exception as e:
+        print(f"Error starting React: {e}")
+
+
+# Redirect to React frontend
+@app.route("/")
+def index():
+    return redirect("http://localhost:3000")
+
 
 prmt_context = "You are the brain of a system with a tagged photo gallery and a to-do list. Below are the existing tags:"
-instruction = ("The user will provide you with a description of what they are trying to find, which can range from a specific photo or a reminder on the to-do list." +
-             "Your job is to figure out which tags are related to their description and provide it to them. The only thing you should respond with are the tags you deemed to be fitting, each on a new line, or ERROR if the user input does not make sense.\n" +
-             "For example, suppose the system contains the following tags:\nschool notes\nscenery\nfood\nmath\n\nSuppose the user asks \"Find the math problem I was working on last week.\" Below is what your response should be:\n"
-             "school notes\nmath\n")
+instruction = (
+            "The user will provide you with a description of what they are trying to find, which can range from a specific photo or a reminder on the to-do list." +
+            "Your job is to figure out which tags are related to their description and provide it to them. The only thing you should respond with are the tags you deemed to be fitting, each on a new line, or ERROR if the user input does not make sense.\n" +
+            "For example, suppose the system contains the following tags:\nschool notes\nscenery\nfood\nmath\n\nSuppose the user asks \"Find the math problem I was working on last week.\" Below is what your response should be:\n"
+            "school notes\nmath\n")
 
 # list of tags
 tags = []
 
 sys_instr = (prmt_context + "\nSTART OF TAGS\n" +
-            "\n".join(tags) + "\nEND OF TAGS\n" +
+             "\n".join(tags) + "\nEND OF TAGS\n" +
              instruction)
 
 # dictionaries
@@ -46,11 +65,6 @@ imgpth_to_tags = {}
 imgpth_to_img = {}
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-
-@app.route('/')
-def serve_react():
-    return send_from_directory(app.static_folder, 'index.html')
 
 
 def allowed_file(filename):
@@ -73,6 +87,8 @@ def load_image(file) -> Union[Image.Image, None]:
 Given file and context string, save it into the dictionary with the associated tags.
 A file can be categorized by multiple tags
 '''
+
+
 @app.route('/upload_with_tag', methods=['POST'])
 def upload():
     # inputs are not given as function arguments, use request method
@@ -104,7 +120,6 @@ def upload_folder(folder: str):
 
 
 def upload_with_args(image_path: str):
-
     with open(image_path, "rb") as f:
         req_file = io.BytesIO(f.read())
 
@@ -131,8 +146,9 @@ def get_files_from_folder(folder: str) -> list[Image]:
 '''
 given a context string, categorize the text into several tags, both new and existing
 '''
-def categorize(context: BinaryIO) -> Any:
 
+
+def categorize(context: BinaryIO) -> Any:
     # change api key as needed
     auth = authenticate_with_api_key(os.getenv("GOOGLE_VISION_KEY"))
     if not auth:
@@ -400,6 +416,6 @@ def add_memory():
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(debug=True) # you can test functions by entering into your browser
-                                   # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
+    app.run(debug=True)  # you can test functions by entering into your browser
+    # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
     # Open http://127.0.0.1:5000 to check if the backend is running!
