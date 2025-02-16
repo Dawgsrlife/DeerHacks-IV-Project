@@ -80,7 +80,7 @@ export default function Admin(props) {
           <div className="mx-auto mb-auto h-full min-h-[84vh] p-4 md:pr-2">
             <Routes>
               {getRoutes(routes)}
-              <Route path="/" element={<Navigate to="/admin/default" replace />} />
+              <Route path="/" element={<Navigate to="/admin/profile" replace />} />
             </Routes>
           </div>
 
