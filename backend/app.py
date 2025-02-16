@@ -108,7 +108,7 @@ def upload():
     print(tags)
     print(tags_to_imgpth)
     print(imgpth_to_tags)
-    save_imgs()
+    save_memories()
     return jsonify({"tags": processed_tags})
 
 
@@ -352,12 +352,18 @@ def load_memories():
             imgpth_to_tags.setdefault(image["image_path"], []).append(tag)
 
 
+def save_memories():
+    """Writes memories from the memories dictionary to memories.json."""
+    validate_memory_file()
+    with open(MEMORIES_FILE, "w") as f:
+        json.dump(memories, f)
+
 @app.route('/timeline', methods=['GET'])
 def get_timeline():
     """API endpoint to fetch all memories for the timeline."""
     return jsonify(memories)
 
-load_imgs()
+# load_imgs()
 load_dotenv()
 load_memories()
 
