@@ -372,6 +372,12 @@ def get_timeline():
     return jsonify(memories)
 
 
+# Serve images from the backend/images folder
+@app.route('/images/<filename>')
+def get_image(filename):
+    return send_from_directory(os.path.join(app.root_path, 'images'), filename)
+
+
 # load_imgs()
 load_dotenv()
 load_memories()

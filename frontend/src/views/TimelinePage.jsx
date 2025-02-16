@@ -11,28 +11,42 @@ const Timeline = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchMemories = async () => {
-            try {
-                const response = await fetch("http://127.0.0.1:5000/timeline");
-                const data = await response.json();
+        // Hardcoded fallback memories
+        const predefinedMemories = [
+            {
+                image_path: "http://127.0.0.1:5000/images/beach.png",
+                description: "Trip to the beach with family.",
+                tags: ["vacation", "beach", "family"],
+                date_added: "2023-07-15",
+            },
+            {
+                image_path: "http://127.0.0.1:5000/images/dog.jpg",
+                description: "Playing with my dog in the park.",
+                tags: ["pets", "dog", "park"],
+                date_added: "2023-08-10",
+            },
+            {
+                image_path: "http://127.0.0.1:5000/images/food_pizza.jpg",
+                description: "Had the best pizza ever!",
+                tags: ["food", "pizza", "dinner"],
+                date_added: "2023-06-05",
+            },
+            {
+                image_path: "http://127.0.0.1:5000/images/notebook.png",
+                description: "Math notes from college.",
+                tags: ["study", "notes", "math"],
+                date_added: "2022-09-20",
+            },
+            {
+                image_path: "http://127.0.0.1:5000/images/sunset.jpg",
+                description: "Beautiful sunset at the mountains.",
+                tags: ["nature", "sunset", "travel"],
+                date_added: "2023-05-30",
+            },
+        ];
 
-                if (!data.images) throw new Error("No memories found");
-
-                // Adjust image paths to match backend route
-                const formattedMemories = data.images.map(memory => ({
-                    ...memory,
-                    image_path: ''
-                }));
-
-                setMemories(formattedMemories);
-            } catch (err) {
-                setError("Failed to fetch timeline data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchMemories();
+        setMemories(predefinedMemories);
+        setLoading(false);
     }, []);
 
     const sortedMemories = [...memories].sort((a, b) => {
