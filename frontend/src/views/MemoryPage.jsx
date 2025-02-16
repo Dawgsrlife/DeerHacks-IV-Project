@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MdArrowBack } from "react-icons/md";
 import Card from "components/card";
 import axios from "axios";
@@ -7,28 +7,32 @@ import axios from "axios";
 const MemoryPage = () => {
     const { query } = useParams(); // Get the search query from URL
     const navigate = useNavigate();
+    const location = useLocation(); // Track location changes
     const [memoryData, setMemoryData] = useState({ images: [], tags: [] });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchMemory = async () => {
+            if (!query) return;
+
+            setLoading(true);
             try {
-                const response = await axios.get(`http://127.0.0.1:5000/search?desc=${query}`);
-                console.log(response);
+                const response = await axios.get(`http://127.0.0.1:5000/search?desc=${encodeURIComponent(query)}`);
                 if (!response.data || response.data.images.length === 0) {
-                    throw new Error("Memory not found");
+                    setMemoryData({ images: [], tags: [] });
+                } else {
+                    setMemoryData({ images: response.data.images, tags: response.data.tags || [] });
                 }
-                setMemoryData({ images: response.data.images || [], tags: response.data.tags || [] });
             } catch (error) {
                 console.error("Error fetching memory:", error);
-                setMemoryData({ images: [], tags: [] }); // No results found
+                setMemoryData({ images: [], tags: [] });
             } finally {
                 setLoading(false);
             }
         };
 
         fetchMemory();
-    }, [query]);
+    }, [query, location.key]); // Re-fetch when query or navigation changes
 
     return (
         <div className="flex flex-col items-center p-6">
