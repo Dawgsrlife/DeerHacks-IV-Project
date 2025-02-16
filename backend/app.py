@@ -21,6 +21,8 @@ from authentication import authenticate_with_api_key
 
 app = Flask(__name__)
 
+local_resource_dir = os.path.join(os.getcwd(), 'images')
+
 prmt_context = "You are the brain of a system with a tagged photo gallery and a to-do list. Below are the existing tags:"
 instruction = ("The user will provide you with a description of what they are trying to find, which can range from a specific photo or a reminder on the to-do list." +
              "Your job is to figure out which tags are related to their description and provide it to them. The only thing you should respond with are the tags you deemed to be fitting, each on a new line, or ERROR if the user input does not make sense.\n" +
@@ -77,7 +79,7 @@ def upload():
     # other 3 parameters
     path = request.args.get("path")
     name = request.args.get("name")
-    img_str = path + name
+    img_str = path + "\\" + name
 
     unprocessed_tags = categorize(req_file)
     print(unprocessed_tags)
@@ -197,18 +199,26 @@ def update_system_instructions():
              instruction)
 
 
+def create_resource_directory():
+    if os.path.exists(local_resource_dir):
+        if not os.path.isdir(local_resource_dir):
+            raise Exception("image is not a directory")
+        if os.path.exists(os.path.join(local_resource_dir, 'image.txt')):
+            return
+        open(os.path.join(local_resource_dir, 'image.txt'), 'x').close()
+    os.mkdir(local_resource_dir)
+    open(os.path.join(local_resource_dir, 'image.txt'), 'x').close()
+
+
 def save_imgs():
-    file_path = os.getcwd() + "\\images\\image.txt"
-    os.mkdir(os.getcwd() + "\\images\\")
-    f = open(file_path, "x")
-    f.close()
-    with open(file_path, "w") as f:
+    create_resource_directory()
+    with open(os.path.join(local_resource_dir, 'image.txt'), "w") as f:
         for path in imgpth_to_tags:
             f.write(path + "," + ",".join(imgpth_to_tags[path]))
 
 def load_imgs():
-    file_path = os.getcwd() + "\\images\\image.txt"
-    with open(file_path, "r") as f:
+    create_resource_directory()
+    with open(os.path.join(local_resource_dir, 'image.txt'), "r") as f:
         keys = f.readline().split(",")
         for tag in keys[1:]:
             tags.append(tag)
