@@ -24,6 +24,8 @@ from authentication import authenticate_with_api_key
 
 app = Flask(__name__, static_folder="backend/images")
 
+local_resource_dir = os.path.join(os.getcwd(), 'images')
+
 
 # Function to start React in a separate thread
 def start_react():
@@ -86,8 +88,6 @@ def load_image(file) -> Union[Image.Image, None]:
 Given file and context string, save it into the dictionary with the associated tags.
 A file can be categorized by multiple tags
 '''
-
-
 @app.route('/upload_with_tag', methods=['POST'])
 def upload():
     # inputs are not given as function arguments, use request method
@@ -98,7 +98,7 @@ def upload():
     # other 3 parameters
     path = request.args.get("path")
     name = request.args.get("name")
-    img_str = path + name
+    img_str = path + "\\" + name
 
     unprocessed_tags = categorize(req_file)
     print(unprocessed_tags)
@@ -145,8 +145,6 @@ def get_files_from_folder(folder: str) -> list[Image]:
 '''
 given a context string, categorize the text into several tags, both new and existing
 '''
-
-
 def categorize(context: BinaryIO) -> Any:
     # change api key as needed
     auth = authenticate_with_api_key(os.getenv("GOOGLE_VISION_KEY"))
@@ -219,30 +217,34 @@ def update_system_instructions():
                  "\n".join(tags) + "\nEND OF TAGS\n" + instruction)
 
 
+def create_resource_directory():
+    if os.path.exists(local_resource_dir):
+        if not os.path.isdir(local_resource_dir):
+            raise Exception("image is not a directory")
+        if os.path.exists(os.path.join(local_resource_dir, 'image.txt')):
+            return
+        open(os.path.join(local_resource_dir, 'image.txt'), 'x').close()
+    os.mkdir(local_resource_dir)
+    open(os.path.join(local_resource_dir, 'image.txt'), 'x').close()
+
+
 # Function to save image paths and their tags to a file
 def save_imgs():
-    file_path = os.path.join(os.getcwd(), "images", "image.txt")
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, "w") as f:
+    create_resource_directory()
+    with open(os.path.join(local_resource_dir, 'image.txt'), "w") as f:
         for path in imgpth_to_tags:
             f.write(path + "," + ",".join(imgpth_to_tags[path]) + "\n")
 
 
 # Function to load image paths and their tags from a file
 def load_imgs():
-    file_path = os.path.join(os.getcwd(), "images", "image.txt")
-    if not os.path.exists(file_path):
-        return
-    with open(file_path, "r") as f:
-        for line in f:
-            keys = line.strip().split(",")
-            if len(keys) < 2:
-                continue
-            img_path, *image_tags = keys
-            imgpth_to_tags[img_path] = image_tags
-            for tag in image_tags:
-                tags.append(tag)
-                tags_to_imgpth.setdefault(tag, []).append(img_path)
+    create_resource_directory()
+    with open(os.path.join(local_resource_dir, 'image.txt'), "r") as f:
+        keys = f.readline().split(",")
+        for tag in keys[1:]:
+            tags.append(tag)
+            tags_to_imgpth.setdefault(tag, []).append(keys[0])
+            imgpth_to_tags.setdefault(keys[0], []).append(tag)
         update_system_instructions()
 
 
@@ -258,13 +260,11 @@ def load_imgs():
 
 #==============================================================================
 
+memory_cache = {}  # Simple dictionary for caching
 
 '''
 Given a context string describing image(s) to be found, compile a list of existing tags that match the context
 '''
-memory_cache = {}  # Simple dictionary for caching
-
-
 @app.route('/search', methods=['GET'])
 def search():
     description = request.args.get('desc', '')
