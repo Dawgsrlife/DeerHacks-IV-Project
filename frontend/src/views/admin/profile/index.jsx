@@ -1,7 +1,7 @@
 import Banner from "./components/Banner";
 import General from "./components/General";
 import Notification from "./components/Notification";
-import Project from "./components/Project";
+import PersonalTasks from "./components/PersonalTasks";
 import Storage from "./components/Storage";
 import Upload from "./components/Upload";
 
@@ -25,7 +25,7 @@ const ProfileOverview = () => {
 
       <div className="grid h-full grid-cols-1 gap-5 lg:!grid-cols-12">
         <div className="col-span-5 lg:col-span-6 lg:mb-0 3xl:col-span-4">
-          <Project />
+          <PersonalTasks />
         </div>
         <div className="col-span-5 lg:col-span-6 lg:mb-0 3xl:col-span-5">
           <General />
