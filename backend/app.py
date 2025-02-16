@@ -108,6 +108,8 @@ def upload():
     assign_tags_to_imgpth(processed_tags, img_str)
     print(tags)
     imgpth_to_img[img_str] = req_file
+    print(tags_to_imgpth)
+    print(imgpth_to_tags)
     return jsonify({"tags": processed_tags})
 
 '''
