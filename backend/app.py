@@ -2,9 +2,6 @@ import os
 import types
 import io
 
-import requests
-
-
 from PIL import Image
 from typing import Union, Sequence, BinaryIO, Any
 # for flask
@@ -17,24 +14,9 @@ from google.genai import types
 # google authentication
 from authentication import authenticate_with_api_key
 
-# for deepseek // unstable for tools
-from openai import OpenAI
-
-# azure ai (cannot import) // deprecated
-# from azure.cognitiveservices.vision.computervision import ComputerVisionClient
-# from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
-# from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
-#  msrest.authentication import CognitiveServicesCredentials
-# from azure.ai.vision.imageanalysis import ImageAnalysisClient
-# from azure.ai.vision.imageanalysis.models import VisualFeatures
-# from azure.core.credentials import AzureKeyCredential
-
 # from flask_cors import CORS
 # from flask_limiter import Limiter
 # from flask_limiter.util import get_remote_address
-# import file
-# import io
-# import os
 
 
 app = Flask(__name__)
@@ -211,7 +193,10 @@ def update_system_instructions():
             "\n".join(tags) + "\nEND OF TAGS\n" +
              instruction)
 
-
+'''
+This method must be called after app is about to close
+'''
+@app.route('/save_imgs', methods=['POST'])
 def save_imgs():
     file_path = os.getcwd() + "\\images\\image.txt"
     os.mkdir(os.getcwd() + "\\images\\")
@@ -292,7 +277,7 @@ load_imgs()
 load_dotenv()
 
 if __name__ == '__main__':
-    app.run(debug=True) # you can test functions by entering into your browser
+    app.run(debug=True) #
+    # you can test functions by entering into your browser
                                    # the url 'http://localhost:3000/ROUTE_GOES_HERE?IMPUTS_GO_HERE'
     # Open http://127.0.0.1:5000 to check if the backend is running!
-save_imgs()
