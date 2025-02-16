@@ -253,16 +253,22 @@ def search():
 
 def get_tags(description: str) -> list[str]:
     interpreter = genai.Client(api_key=os.getenv("GEMINI_KEY"))
-    response = interpreter.models.generate_content(
-        model="gemini-2.0-flash",
-        config=types.GenerateContentConfig(
-            system_instruction=sys_instr
-        ),
-        contents=description
-    )
-    if response.text == "ERROR":
-        return []
-    return response.text.split("\n")
+
+    try:
+        response = interpreter.models.generate_content(
+            model="gemini-2.0-flash",
+            config=types.GenerateContentConfig(system_instruction=sys_instr),
+            contents=description
+        )
+        if response.text == "ERROR":
+            return []
+        return response.text.split("\n")
+
+    except Exception as e:
+        print(f"Gemini API error: {e}")
+        # Return a basic fallback result for testing
+        fallback_tags = ["test-tag1", "test-tag2", "test-tag3"]
+        return fallback_tags  # Replace with random or pre-defined tags
 
 
 # Function to get related image paths based on AI-generated tags
