@@ -1,6 +1,7 @@
 import os
 import types
 import io
+import json
 
 from PIL import Image
 from typing import Union, Sequence, BinaryIO, Any
@@ -302,6 +303,58 @@ def get_related_imgpths(ai_tags: list[str]) -> list[str]:
 
 load_imgs()
 load_dotenv()
+
+# =====================================================================
+
+app = Flask(__name__)
+
+MEMORY_FILE = "memories.json"
+
+
+# Load memories from JSON file
+def load_memories():
+    try:
+        with open(MEMORY_FILE, "r") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+# Save memories to JSON file
+def save_memories(memories):
+    with open(MEMORY_FILE, "w") as file:
+        json.dump(memories, file, indent=4)
+
+
+# Search memories based on a query
+@app.route('/search', methods=['GET'])
+def search():
+    description = request.args.get('desc', '').lower()
+    memories = load_memories()
+
+    # Find memories matching the description or tags
+    results = [m for m in memories if
+               description in m['description'].lower() or any(description in tag for tag in m['tags'])]
+
+    if not results:
+        return jsonify({'error': 'No memories found'}), 404
+
+    return jsonify(
+        {'images': [m['image_path'] for m in results], 'tags': list(set(tag for m in results for tag in m['tags']))})
+
+
+# Add a new memory
+@app.route('/add_memory', methods=['POST'])
+def add_memory():
+    data = request.json
+    if not data or "image_path" not in data or "description" not in data or "tags" not in data or "date_added" not in data:
+        return jsonify({"error": "Missing fields"}), 400
+
+    memories = load_memories()
+    memories.append(data)
+    save_memories(memories)
+
+    return jsonify({"message": "Memory added successfully!"})
 
 if __name__ == '__main__':
     app.run(debug=True) # you can test functions by entering into your browser
