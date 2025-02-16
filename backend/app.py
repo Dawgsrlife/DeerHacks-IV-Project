@@ -5,17 +5,19 @@ import atexit
 
 import requests
 
-from flask import Flask, request, jsonify
+
 from PIL import Image
 from typing import Union, Sequence, BinaryIO, Any
-
+# for flask
+from flask import Flask, request, jsonify
 from flask.cli import load_dotenv
+# for vision ai and gemini ai
 from google.cloud import vision
 from google import genai
 from google.genai import types
-
+# google authentication
 from authentication import authenticate_with_api_key
-# for vision ai
+
 # for deepseek // unstable for tools
 from openai import OpenAI
 
@@ -61,23 +63,6 @@ imgpth_to_tags = {}
 # each path has one image
 imgpth_to_img = {}
 
-# idk what this do
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def load_image(file) -> Union[Image.Image, None]:
-    try:
-        if not allowed_file(file.filename) or not file.mimetype.startswith('image/'):
-            return None
-        img = Image.open(file)
-        img.verify()
-        file.seek(0)
-        return Image.open(file)
-    except Exception:
-        return None
-
 
 '''
 Given file and context string, save it into the dictionary with the associated tags.
@@ -93,16 +78,9 @@ def upload():
     # other 3 parameters
     path = request.args.get("path")
     name = request.args.get("name")
-    format = request.args.get("format")
-    img_str = path + name + '.' + format
-    # # verify file integrity
-    # verified_file = load_image(req_file)
-    # if verified_file is None:
-    #     return jsonify({'error': 'invalid '}), 400
-    #     pass
-    # get image context from front end
-    # req_context = str(request.args.get('context')) # url / input most have context=... and his gets ...
-    # get tags from deepseek (issue: deepseek might not return same tags for same input)
+    fmt = request.args.get("format")
+    img_str = path + name + '.' + fmt
+
     unprocessed_tags = categorize(req_file)
     print(unprocessed_tags)
     processed_tags = process_ai_response(unprocessed_tags)
@@ -143,14 +121,12 @@ def categorize(context: BinaryIO) -> Any:
 
 
 def process_ai_response(response) -> list[str]:
-
     img_tags = []
     # label processing
     for label in response.label_annotations:
         guarantee = label.score
         tag = label.description.lower()
-
-        # add condition for score
+        # add condition for score ?
         if tag not in img_tags:
             img_tags.append(tag)
 
@@ -176,21 +152,21 @@ def process_ai_response(response) -> list[str]:
 
 
 def assign_tags_to_imgpth(input_tags: list[str], image):
-
     # Assign tags to images
     imgpth_to_tags[image] = input_tags
-
     # Assign image to tags
     for tag in input_tags:
         if tag not in tags:
             tags.append(tag)
         tags_to_imgpth.setdefault(tag, []).append(image)
 
+
 def update_system_instructions():
     global sys_instr
     sys_instr = (prmt_context + "\nSTART OF TAGS\n" +
             "\n".join(tags) + "\nEND OF TAGS\n" +
              instruction)
+
 
 def save_imgs():
     file_path = os.getcwd() + "\\images\\image.txt"
