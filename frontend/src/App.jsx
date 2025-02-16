@@ -2,14 +2,11 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import AdminLayout from "layouts/admin";
-import RtlLayout from "layouts/rtl";
-import AuthLayout from "layouts/auth";
+
 const App = () => {
   return (
     <Routes>
         <Route path="admin/*" element={<AdminLayout />} />
-        {/*<Route path="auth/*" element={<AuthLayout />} />*/}
-      {/*<Route path="rtl/*" element={<RtlLayout />} />*/}
       <Route path="/" element={<Navigate to="/admin" replace />} />
     </Routes>
   );
