@@ -49,6 +49,9 @@ To enable AI-powered search and image processing, you need to set up **Google Cl
 
 1. **Install Google Cloud CLI** (this may take a while):  
    [Download Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
+   - Without checking any options, the installer will by default start a terminal window and run the `gcloud init` command.
+   - It will prompt you to sign in to Google; respond with `y` when prompted and log in with your desired Google account in the browser.
+   - When it says you are now authenticated with the Google Cloud CLI, then use the **Google Cloud SDK Shell** and continue with the steps below.
 
 2. **Authenticate with Google Cloud**:
    - Open **Google Cloud SDK Shell** (installed with the CLI)
