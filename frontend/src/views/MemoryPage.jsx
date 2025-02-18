@@ -24,7 +24,7 @@ const sampleMemories = [
         tags: ["food", "pizza", "dinner"],
     },
     {
-        image_path: "images/notebook.png",
+        image_path: "images/notebook.jpg",
         description: "Math notes from college.",
         summary: "Studying calculus for an upcoming test.",
         tags: ["study", "notes", "math"],
