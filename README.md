@@ -16,14 +16,20 @@ Eterna is an AI-powered memory retrieval system that allows users to **search fo
 
 ## 📸 Screenshots
 
+### **Image Upload with AI Tagging**
+![Image Upload with AI Tagging](frontend/src/assets/screenshots/profile.png)
+
+### **Memory Search**
+![Memory Search](frontend/src/assets/screenshots/memory.png)
+
+### **Timeline**
+![Timeline](frontend/src/assets/screenshots/timeline.png)
+
 ### **Personal Tasks**
-![Memory Search](frontend/src/assets/screenshots/personal_tasks.png)
+![Personal Tasks](frontend/src/assets/screenshots/personal_tasks.png)
 
 ### **Usage Statistics**
-![Timeline](frontend/src/assets/screenshots/statistics.png)
-
-### **Image Upload with AI Tagging**
-![Upload Feature](frontend/src/assets/screenshots/profile.png)
+![Usage Statistics](frontend/src/assets/screenshots/statistics.png)
 
 ---
 
