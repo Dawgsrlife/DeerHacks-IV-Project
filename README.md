@@ -50,6 +50,7 @@ The backend will be running at: **`http://127.0.0.1:5000`**
 #### **Step 1: Install Dependencies**
 Ensure you have **Node.js 16+** installed, then run:
 ```sh
+cd ..
 cd frontend
 npm install
 ```
