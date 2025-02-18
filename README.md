@@ -33,6 +33,11 @@ Eterna is an AI-powered memory retrieval system that allows users to **search fo
 
 ---
 
+## 🎥 Video Demo
+[Watch the Demo](https://youtu.be/Ov7quuQdK0Y)
+
+---
+
 ## 🚀 Getting Started
 
 ### 1️⃣ Backend Setup
@@ -49,9 +54,10 @@ To enable AI-powered search and image processing, you need to set up **Google Cl
 
 1. **Install Google Cloud CLI** (this may take a while):  
    [Download Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
+
    - Without checking any options, the installer will by default start a terminal window and run the `gcloud init` command.
-   - It will prompt you to sign in to Google; respond with `y` when prompted and log in with your desired Google account in the browser.
-   - When it says you are now authenticated with the Google Cloud CLI, then use the **Google Cloud SDK Shell** and continue with the steps below.
+   - It will prompt you to sign into Google. Respond with `y` when prompted and log in to your desired Google account in the browser.
+   - When it says that you are **now** authenticated with the gcloud CLI, proceed with the next steps.
 
 2. **Authenticate with Google Cloud**:
    - Open **Google Cloud SDK Shell** (installed with the CLI)
@@ -135,3 +141,4 @@ Eterna is licensed under the **MIT License** – free to use and modify!
 ## 💡 Acknowledgments
 Special thanks to **Google GenAI** for their incredible APIs that power  
 Eterna’s intelligence. 🙌
+
