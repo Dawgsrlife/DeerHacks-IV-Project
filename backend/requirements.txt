@@ -1,0 +1,7 @@
+pillow
+flask
+google-cloud-vision
+google-cloud-visionai
+google-cloud
+google-genai
+google-cloud-language
